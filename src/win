@@ -181,7 +181,8 @@ run_qemu ()
         -parallel none                                                  \
         -display none                                                   \
         -nographic                                                      \
-        -soundhw hda                                                    \
+        -device intel-hda                                               \
+        -device hda-duplex                                              \
         -netdev user,id=mynet0                                          \
         -drive file=${VM_OVMF_CODE},if=pflash,format=raw,unit=0,readonly=on \
         -drive file=${VM_OVMF_VARS},if=pflash,format=raw,unit=1         \
