@@ -28,7 +28,7 @@ fi
 
     # --graphics spice,port=${SPICE_PORT} \
 
-sudo \
+#sudo \
 virt-install \
     --connect ${CONNECT} \
     --name ${NAME}     \
@@ -46,4 +46,5 @@ virt-install \
     --channel spicevmc,target_type=virtio  \
     --network network=${NETWORK},model=virtio \
     --cdrom ${VM_ISO}      \
-    --disk path=${VM_DISK},bus=virtio
+    --disk path=${VM_DISK},bus=virtio  \
+    --boot uefi
