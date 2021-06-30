@@ -189,7 +189,7 @@ run_qemu ()
         -drive file=${VM_IMG_1},format=${VM_IMG_FMT_1},cache=${VM_IMG_CACHE_1},if=none,index=0,id=disk0 \
         -device virtio-blk-pci,drive=disk0,bootindex=${VM_BOOT_IMG}     \
         ${VM_EXTRA_BLOCKS}                                              \
-        -spice port=5924,disable-ticketing                              \
+        -spice port=5924,disable-ticketing=on                           \
         -device qxl-vga                                                 \
         -device virtio-serial                                           \
         -device ${VM_DEV_NET},netdev=mynet0                             \
