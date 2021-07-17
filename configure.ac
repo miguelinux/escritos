@@ -1,5 +1,5 @@
 AC_PREREQ([2.60])
-AC_INIT(win, 0, miguel.bernal.marin@gmail.com)
+AC_INIT(qemu-scripts, 0, miguel.bernal.marin@gmail.com)
 
 AM_INIT_AUTOMAKE([foreign -Wall -Werror -Wno-portability parallel-tests])
 
