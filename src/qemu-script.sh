@@ -211,9 +211,9 @@ run_qemu ()
 
 ############################### main ###############################
 
-if [ -e ${HOME}/.config/win/config ]
+if [ -e ${HOME}/.config/qemu-script/${0##*/}.conf ]
 then
-    source ${HOME}/.config/win/config
+    source ${HOME}/.config/qemu-script/${0##*/}.conf
 fi
 parse_args $@
 is_running
