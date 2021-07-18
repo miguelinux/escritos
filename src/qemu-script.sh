@@ -5,9 +5,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 ##################  start default config  ##################
-VM_NAME=win10
+VM_NAME=vm001
 VM_DEV_NET="virtio-net-pci"                               # VM type NIC 
-VM_MONITOR=${HOME}/.cache/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
+VM_MONITOR="" #${HOME}/.cache/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
 VM_MEM=2048                                               # VM RAM
 VM_SERIAL=none                                            # VM Serial 
 VM_IMG_1=""                                               # VM Image 1
@@ -109,6 +109,12 @@ my_setup ()
 
     # Create cache dir if not exist
     mkdir -p ${HOME}/.cache/qemu
+
+    # Ensure VM_MONITOR
+    if [ -z "${VM_MONITOR}" ]
+    then
+        VM_MONITOR=${HOME}/.cache/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
+    fi
 }
 
 parse_args ()
