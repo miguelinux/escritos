@@ -25,6 +25,7 @@ VM_NETDEV=user                                            # user|tap
 VM_TAP=""                                                 # Network tap device name
 VM_BRIDGE=""                                              # Network bridge name
 VM_NETDEV_EXTRA=""                                        # Extra config filled in my_setup
+VM_MACADDRESS=52:54:00:a1:b2:c3                           #
 VM_OVMF_CODE=${HOME}/.local/share/qemu/OVMF_CODE.fd
 VM_OVMF_VARS=${HOME}/.local/share/qemu/OVMF_VARS-${VM_NAME}.fd
 EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
@@ -221,7 +222,7 @@ run_qemu ()
         -device qxl-vga                                                 \
         -device virtio-serial                                           \
         -netdev ${VM_NETDEV},id=mynet0${VM_NETDEV_EXTRA}                \
-        -device ${VM_DEV_NET},netdev=mynet0,mac=52:54:00:aa:bb:cc       \
+        -device ${VM_DEV_NET},netdev=mynet0,mac=${VM_MACADDRESS}        \
         -chardev spicevmc,id=vdagent,name=vdagent                       \
         -device virtserialport,chardev=vdagent,name=com.redhat.spice.0  \
         -device virtio-rng-pci                                          \
