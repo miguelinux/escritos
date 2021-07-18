@@ -21,6 +21,10 @@ VM_ISO_2=""                                               # VM ISO 2
 VM_EXTRA_BLOCKS=""                                        # Extra VM disk images
 VM_BOOT_IMG=0                                             # VM Image 1 bootindex
 VM_BOOT_ISO=1                                             # VM ISO 1 bootindex
+VM_NETDEV=user                                            # user|tap
+VM_TAP=""                                                 # Network tap device name
+VM_BRIDGE=""                                              # Network bridge name
+VM_NETDEV_EXTRA=""                                        # Extra config filled in my_setup
 VM_OVMF_CODE=${HOME}/.local/share/qemu/OVMF_CODE.fd
 VM_OVMF_VARS=${HOME}/.local/share/qemu/OVMF_VARS-${VM_NAME}.fd
 EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
@@ -90,6 +94,17 @@ my_setup ()
         else
             die "Can not find OVMF_VARS.fd file"
         fi
+    fi
+
+    if test "tap" = "${VM_NETDEV}" \
+        -a -n "${VM_TAP}" \
+        -a -n "${VM_BRIDGE}"
+    then
+        VM_NETDEV_EXTRA=",ifname=${VM_TAP},script=no,downscript=no,br=${VM_BRIDGE}"
+    else
+        # Ensure we use user netdev
+        VM_NETDEV=user
+        VM_NETDEV_EXTRA=""
     fi
 
     # Create cache dir if not exist
@@ -191,7 +206,6 @@ run_qemu ()
         -nographic                                                      \
         -device intel-hda                                               \
         -device hda-duplex                                              \
-        -netdev user,id=mynet0                                          \
         -drive file=${VM_OVMF_CODE},if=pflash,format=raw,unit=0,readonly=on \
         -drive file=${VM_OVMF_VARS},if=pflash,format=raw,unit=1         \
         -drive file=${VM_IMG_1},format=${VM_IMG_FMT_1},cache=${VM_IMG_CACHE_1},if=none,index=0,id=disk0 \
@@ -200,7 +214,8 @@ run_qemu ()
         -spice port=5924,disable-ticketing=on                           \
         -device qxl-vga                                                 \
         -device virtio-serial                                           \
-        -device ${VM_DEV_NET},netdev=mynet0                             \
+        -netdev ${VM_NETDEV},id=mynet0${VM_NETDEV_EXTRA}                \
+        -device ${VM_DEV_NET},netdev=mynet0,mac=52:54:00:aa:bb:cc       \
         -chardev spicevmc,id=vdagent,name=vdagent                       \
         -device virtserialport,chardev=vdagent,name=com.redhat.spice.0  \
         -device virtio-rng-pci                                          \
