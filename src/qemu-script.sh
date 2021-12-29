@@ -31,6 +31,9 @@ VM_OVMF_VARS=${HOME}/.local/share/qemu/OVMF_VARS-${VM_NAME}.fd
 EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
 ##################  end default config  ###################
 
+# Where is the qemu binary
+QEMU_BIN=$(command -v qemu-system-x86_64)
+
 die ()
 {
     >&2 echo -e "${*}"
@@ -116,6 +119,14 @@ my_setup ()
     then
         VM_MONITOR=${HOME}/.cache/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
     fi
+
+    if [ -z "${QEMU_BIN}" ]
+    then
+        if [ -x /usr/libexec/qemu-kvm ]
+        then
+            QEMU_BIN=/usr/libexec/qemu-kvm
+        fi
+    fi
 }
 
 parse_args ()
@@ -197,7 +208,7 @@ parse_args ()
 
 run_qemu ()
 {
-    qemu-system-x86_64                                                  \
+    ${QEMU_BIN}                                                         \
         -daemonize                                                      \
         -name ${VM_NAME}                                                \
         -cpu host                                                       \
