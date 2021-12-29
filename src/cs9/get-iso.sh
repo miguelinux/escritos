@@ -12,15 +12,51 @@ ISO_STORAGE=.
 SILENT="--silent"
 QUIET="--quiet"
 
+SHOW_HELP=0
+
 ### Get user config
 if test -f $HOME/.config/qemu-script/get-iso.conf
 then
     source $HOME/.config/qemu-script/get-iso.conf
 fi
 
+show_help() {
+    echo "Usage: $0 [parameters]"
+    echo ""
+    echo "PARAMETERS"
+    echo ""
+    echo "-v, --verbose      Shows commands output"
+    echo "-d, --debug        Set debug mode in bash, i.e. set -x"
+    echo "-e, --error        Set error mode in bash, i.e. set -e"
+    echo "--distro DISTRO    Set the url DISTRO name part, i.e. 9-stream"
+    echo "--url URL          Set the base URL to download"
+    echo "--dir DIRECTORY    Set the url DIRECTORY name part"
+    echo "-s, --storage PATH Set the PATH to save ISO file"
+    echo "-h, --help         Shows this help"
+    echo ""
+    echo "Current setup is:"
+    echo "  URL     = ${ISO_URL}"
+    echo "  Distro  = ${ISO_DISTRO}"
+    echo "  Dir     = ${ISO_DIR}"
+    echo "  Storage = ${ISO_STORAGE}"
+    echo ""
+    echo -n "config file at: $HOME/.config/qemu-script/get-iso.conf"
+    if test -f $HOME/.config/qemu-script/get-iso.conf
+    then
+        echo "; Found"
+    else
+        echo "; NOT Found"
+    fi
+    echo ""
+    exit
+}
+
 while [ -n "${1}" ]
 do
     case "$1" in
+        -h|--help)
+            SHOW_HELP=1
+        ;;
         -d|--debug)
             set -x
         ;;
@@ -50,6 +86,11 @@ do
     esac
     shift
 done
+
+if [ ${SHOW_HELP} -eq 1 ]
+then
+    show_help
+fi
 
 ISO_PAGE=${ISO_URL}/${ISO_DISTRO}/${ISO_DIR}
 
