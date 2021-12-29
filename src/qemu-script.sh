@@ -175,9 +175,9 @@ parse_args ()
             ;;
             -f|--config)
                 shift
-                if [ -e ${HOME}/.config/win/$1 ]
+                if [ -e ${HOME}/.config/qemu-script/$1 ]
                 then
-                    source ${HOME}/.config/win/$1
+                    source ${HOME}/.config/qemu-script/$1
                 else
                     if [ -e $1 ]
                     then
