@@ -61,12 +61,12 @@ my_setup ()
     fi
     if [ -n "${VM_ISO_1}" ]
     then
-        VM_EXTRA_BLOCKS+=" -drive file=${VM_ISO_1},if=none,format=raw,readonly,index=2,id=cd0"
+        VM_EXTRA_BLOCKS+=" -drive file=${VM_ISO_1},if=none,format=raw,readonly=on,index=2,id=cd0"
         VM_EXTRA_BLOCKS+=" -device ide-cd,bus=ide.0,drive=cd0,bootindex=${VM_BOOT_ISO}"
     fi
     if [ -n "${VM_ISO_2}" ]
     then
-        VM_EXTRA_BLOCKS+=" -drive file=${VM_ISO_2},if=none,format=raw,readonly,index=3,id=cd1"
+        VM_EXTRA_BLOCKS+=" -drive file=${VM_ISO_2},if=none,format=raw,readonly=on,index=3,id=cd1"
         VM_EXTRA_BLOCKS+=" -device ide-cd,bus=ide.1,drive=cd1"
     fi
 
