@@ -70,7 +70,7 @@ my_setup ()
 
 run_qemu ()
 {
-  echo ${QEMU_BIN}                                                       \
+  ${QEMU_BIN}                                                       \
     -daemonize                                                      \
     -name ${VM_NAME}                                                \
     -enable-kvm                                                     \
