@@ -15,11 +15,11 @@ qemu-system-x86_64 \
     -daemonize                                                      \
     -name ${VM_NAME}                                                \
     -enable-kvm \
-    -m 3G \
+    -m 5G \
     -machine type=q35,accel=kvm,usb=on                              \
+    -cpu Penryn,vendor=GenuineIntel,kvm=on,+sse3,+sse4.2,+aes,+xsave,+avx,+xsaveopt,+xsavec,+xgetbv1,+avx2,+bmi2,+smep,+bmi1,+fma,+movbe,+invtsc \
     -smp cpus=4,cores=2,threads=2,sockets=1                         \
     -rtc base=localtime                                             \
-    -cpu Penryn,vendor=GenuineIntel,kvm=on,+sse3,+sse4.2,+aes,+xsave,+avx,+xsaveopt,+xsavec,+xgetbv1,+avx2,+bmi2,+smep,+bmi1,+fma,+movbe,+invtsc \
     -monitor unix:${VM_MONITOR},server,nowait                       \
     -serial none                                                    \
     -parallel none                                                  \
@@ -27,7 +27,7 @@ qemu-system-x86_64 \
     -nographic                                                      \
     -device isa-applesmc,osk="$OSK" \
     -smbios type=2 \
-    -drive if=pflash,format=raw,readonly,file="$OVMF/OVMF_CODE.fd" \
+    -drive if=pflash,format=raw,readonly=on,file="$OVMF/OVMF_CODE.fd" \
     -drive if=pflash,format=raw,file="$OVMF/OVMF_VARS-1024x768.fd" \
     -spice port=5924,disable-ticketing=on                           \
     -device qxl-vga                                                 \
