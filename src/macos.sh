@@ -77,7 +77,7 @@ run_qemu ()
     -m 5G \
     -machine type=q35,accel=kvm,usb=on                              \
     -cpu Penryn,vendor=GenuineIntel,kvm=on,+sse3,+sse4.2,+aes,+xsave,+avx,+xsaveopt,+xsavec,+xgetbv1,+avx2,+bmi2,+smep,+bmi1,+fma,+movbe,+invtsc \
-    -smp cpus=4,cores=2,threads=2,sockets=1                         \
+    -smp cpus=2,cores=1,threads=2,sockets=1                         \
     -rtc base=localtime                                             \
     -monitor unix:${VM_MONITOR},server,nowait                       \
     -serial none                                                    \

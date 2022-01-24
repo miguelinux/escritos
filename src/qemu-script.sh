@@ -9,6 +9,8 @@ VM_NAME=vm001
 VM_DEV_NET="virtio-net-pci"                               # VM type NIC 
 VM_MONITOR="" #${HOME}/.cache/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
 VM_MEM=2048                                               # VM RAM
+VM_CPU=host                                               # CPU type
+VM_SMP="cpus=4,cores=2,threads=2,sockets=1"               # SMP
 VM_SERIAL=none                                            # VM Serial 
 VM_IMG_1=""                                               # VM Image 1
 VM_IMG_FMT_1=qcow2       # raw|qcow2|luks|vmdk|vpc|VHDX
@@ -211,10 +213,10 @@ run_qemu ()
     ${QEMU_BIN}                                                         \
         -daemonize                                                      \
         -name ${VM_NAME}                                                \
-        -cpu host                                                       \
+        -cpu  ${VM_CPU}                                                 \
         -machine type=q35,accel=kvm,usb=on                              \
         -enable-kvm                                                     \
-        -smp cpus=4,cores=2,threads=2,sockets=1                         \
+        -smp ${VM_SMP}                                                  \
         -m ${VM_MEM}                                                    \
         -rtc base=localtime                                             \
         -monitor unix:${VM_MONITOR},server,nowait                       \
