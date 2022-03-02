@@ -177,8 +177,15 @@ parse_args ()
             ;;
             -c|--command)
                 shift
-                VM_SERIAL=$1
-                if [ -e ${VM_MONITOR} ]
+                # Create cache dir if not exist
+                mkdir -p ${HOME}/.cache/qemu
+
+                # Ensure VM_MONITOR
+                if [ -z "${VM_MONITOR}" ]
+                then
+                    VM_MONITOR=${HOME}/.cache/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
+                fi
+                if [ -S ${VM_MONITOR} ]
                 then
                     echo "$@" | socat - unix-connect:${VM_MONITOR}
                     exit 0
