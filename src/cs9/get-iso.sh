@@ -9,6 +9,11 @@ ISO_DISTRO=9-stream
 ISO_DIR=BaseOS/x86_64/iso
 ISO_STORAGE=.
 
+# ISO_URL=http://mirror.arizona.edu
+# ISO_DISTRO=centos/8-stream
+# ISO_DIR=isos/x86_64
+# ISO_STORAGE=.
+
 SILENT="--silent"
 QUIET="--quiet"
 
@@ -92,33 +97,58 @@ then
     show_help
 fi
 
+if [ "9" = "${ISO_DISTRO:0:1}" ]
+then
+    shafile=SHA256SUM
+    datefield=4
+    stream=9
+else
+    shafile=CHECKSUM
+    datefield=5
+    stream=8
+fi
+
 ISO_PAGE=${ISO_URL}/${ISO_DISTRO}/${ISO_DIR}
 
-SHA256_LINE=$(curl ${SILENT} ${ISO_PAGE}/SHA256SUM | grep dvd | grep SHA256)
+SHA256_LINE=$(curl ${SILENT} ${ISO_PAGE}/${shafile} | grep dvd | grep SHA256)
 #SHA256=$(echo ${SHA256_LINE} | cut -f 4 -d \ )
-LATEST_DATE=$(echo ${SHA256_LINE} | cut -f 4 -d -)
+LATEST_DATE=$(echo ${SHA256_LINE} | cut -f ${datefield} -d -)
 
-if test -f ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso
+
+if [ "${stream}" = "9" ]
+then
+    ISO_FILE=CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso
+else
+    ISO_FILE=CentOS-Stream-8-x86_64-${LATEST_DATE}-dvd1.iso
+fi
+
+if test -f ${ISO_STORAGE}/${ISO_FILE}
 then
     echo exit 0
 fi
 
-curl ${SILENT} --location \
-     -o ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso.SHA256SUM \
-        ${ISO_PAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso.SHA256SUM
-
-curl ${SILENT} --location \
-     -o ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso \
-        ${ISO_PAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso
-
-pushd ${ISO_STORAGE} > /dev/null
-if ! sha256sum ${QUIET} -c ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso.SHA256SUM
+if [ "${stream}" = "9" ]
 then
-    echo "Bad sha256sum"
-    rm -v ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso
-    rm -v ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso.SHA256SUM
-    popd >> /dev/null
-    exit 1
+    curl ${SILENT} --location \
+        -o ${ISO_STORAGE}/${ISO_FILE}.SHA256SUM \
+           ${ISO_PAGE}/${ISO_FILE}.SHA256SUM
 fi
-popd > /dev/null
+
+curl ${SILENT} --location \
+     -o ${ISO_STORAGE}/${ISO_FILE} \
+        ${ISO_PAGE}/${ISO_FILE}
+
+if [ "${stream}" = "9" ]
+then
+    pushd ${ISO_STORAGE} > /dev/null
+    if ! sha256sum ${QUIET} -c ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso.SHA256SUM
+    then
+        echo "Bad sha256sum"
+        rm -v ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso
+        rm -v ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso.SHA256SUM
+        popd >> /dev/null
+        exit 1
+    fi
+    popd > /dev/null
+fi
 
