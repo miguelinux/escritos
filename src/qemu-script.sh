@@ -35,6 +35,7 @@ EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
 
 # Where is the qemu binary
 QEMU_BIN=$(command -v qemu-system-x86_64)
+QEMU_DAEMONIZE="-daemonize"
 
 die ()
 {
@@ -129,6 +130,11 @@ my_setup ()
             QEMU_BIN=/usr/libexec/qemu-kvm
         fi
     fi
+
+    if [ "${VM_SERIAL}" = "stdio" ]
+    then
+        QEMU_DAEMONIZE=""
+    fi
 }
 
 parse_args ()
@@ -218,7 +224,7 @@ parse_args ()
 run_qemu ()
 {
     ${QEMU_BIN}                                                         \
-        -daemonize                                                      \
+        ${QEMU_DAEMONIZE}                                               \
         -name ${VM_NAME}                                                \
         -cpu  ${VM_CPU}                                                 \
         -machine type=q35,accel=kvm,usb=on                              \
