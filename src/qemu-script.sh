@@ -251,7 +251,8 @@ run_qemu ()
         -device ${VM_DEV_NET},netdev=mynet0,mac=${VM_MACADDRESS}        \
         -chardev spicevmc,id=vdagent,name=vdagent                       \
         -device virtserialport,chardev=vdagent,name=com.redhat.spice.0  \
-        -device virtio-rng-pci                                          \
+        -object rng-random,id=virtio-rng0,filename=/dev/random          \
+        -device virtio-rng-pci,rng=virtio-rng0,id=rng0,bus=pcie.0,addr=0x9 \
         -device qemu-xhci,id=usb                                        \
         -device usb-tablet,bus=usb.0                                    \
         -chardev spicevmc,name=usbredir,id=usbredirchardev1             \
