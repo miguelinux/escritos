@@ -30,6 +30,10 @@ VM_NETDEV_EXTRA=""                                        # Extra config filled 
 VM_MACADDRESS=52:54:00:a1:b2:c3                           #
 VM_OVMF_CODE=${HOME}/.local/share/qemu/OVMF_CODE.fd
 VM_OVMF_VARS=${HOME}/.local/share/qemu/OVMF_VARS-${VM_NAME}.fd
+VM_KERNEL=""
+VM_INITRD=""
+VM_KCMDLINE=""
+VM_LOOP=""
 EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
 ##################  end default config  ###################
 
@@ -39,6 +43,7 @@ EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
 # Where is the qemu binary
 QEMU_BIN=$(command -v qemu-system-x86_64)
 QEMU_DAEMONIZE="-daemonize"
+KERNEL_DIR=""
 
 die ()
 {
@@ -59,6 +64,14 @@ my_setup ()
     if [ -z "${VM_IMG_1}" ]
     then
         die "No VM image found"
+    fi
+    if [ -z "${VM_ISO_1}" ]
+    then
+        die "No ISO image found"
+    fi
+    if [ -z "${VM_LOOP}" ]
+    then
+        die "No loop device given"
     fi
     if [ -n "${VM_IMG_2}" ]
     then
@@ -184,6 +197,22 @@ parse_args ()
                 shift
                 VM_NAME=$1
             ;;
+            -kernel)
+                shift
+                VM_KERNEL=$1
+            ;;
+            -initrd)
+                shift
+                VM_INITRD=$1
+            ;;
+            -append)
+                shift
+                VM_KCMDLINE=$1
+            ;;
+            -loop)
+                shift
+                VM_LOOP=$1
+            ;;
             -c|--command)
                 shift
                 # Create cache dir if not exist
@@ -222,6 +251,76 @@ parse_args ()
         esac
         shift
     done
+}
+
+extract_kernel ()
+{
+    if [ ! -e ${VM_ISO_1} ]
+    then
+        die "${VM_ISO_1} does not exist"
+    fi
+
+    KERNEL_DIR=$(mktemp -d /tmp/create-os-image.XXXXXX)
+
+    if ! losetup -P ${VM_LOOP} ${VM_ISO_1}
+    then
+        rm -rf ${KERNEL_DIR}
+        die "Could not create the ${VM_LOOP} device"
+    fi
+
+    mkdir -p ${KERNEL_DIR}/${VM_LOOP}p1
+
+    if ! mount -o ro /dev/${VM_LOOP}p1 ${KERNEL_DIR}/${VM_LOOP}p1
+    then
+        losetup -d /dev/${VM_LOOP}
+        rm -rf ${KERNEL_DIR}
+        die "Could not mount the ${VM_LOOP} device"
+    fi
+
+    if [ -z "${VM_KERNEL}" ]
+    then
+        if [ ! -e ${KERNEL_DIR}/${VM_LOOP}p1/images/pxeboot/vmlinuz ]
+        then
+            umount /dev/${VM_LOOP}p1
+            losetup -d /dev/${VM_LOOP}
+            rm -rf ${KERNEL_DIR}
+            die "vmlinuz not found at /images/pxeboot"
+        fi
+
+        cp ${KERNEL_DIR}/${VM_LOOP}p1/images/pxeboot/vmlinuz ${KERNEL_DIR}
+        VM_KERNEL=${KERNEL_DIR}/vmlinuz
+    fi
+
+    if [ -z "${VM_INITRD}" ]
+    then
+        if [ ! -e ${KERNEL_DIR}/${VM_LOOP}p1/images/pxeboot/initrd.img ]
+        then
+            umount /dev/${VM_LOOP}p1
+            losetup -d /dev/${VM_LOOP}
+            rm -rf ${KERNEL_DIR}
+            die "initrd not found at /images/pxeboot"
+        fi
+
+        cp ${KERNEL_DIR}/${VM_LOOP}p1/images/pxeboot/initrd.img ${KERNEL_DIR}
+        VM_INITRD=${KERNEL_DIR}/initrd.img
+    fi
+
+    if [ -z "${VM_KCMDLINE}" ]
+    then
+        if [ ! -e ${KERNEL_DIR}/${VM_LOOP}p1/EFI/BOOT/BOOT.conf ]
+        then
+            umount /dev/${VM_LOOP}p1
+            losetup -d /dev/${VM_LOOP}
+            rm -rf ${KERNEL_DIR}
+            die "BOOT.conf not found at /EFI/BOOT"
+        fi
+        VM_KCMDLINE=$(grep -m 1 vmlinuz ${KERNEL_DIR}/${VM_LOOP}p1/EFI/BOOT/BOOT.conf \
+                            | sed -e "s/^[[:space:]]*//" \
+                            | cut -f 3- -d " ")
+    fi
+
+    umount /dev/${VM_LOOP}p1
+    losetup -d /dev/${VM_LOOP}
 }
 
 run_qemu ()
@@ -266,13 +365,22 @@ run_qemu ()
         -device usb-redir,chardev=usbredirchardev3,id=usbredirdev3      \
         -global ICH9-LPC.disable_s3=1                                   \
         -global ICH9-LPC.disable_s4=1                                   \
-        -kernel /tmp/vmlinuz \
-        -initrd /tmp/initrd.img \
-        -append "inst.stage2=hd:LABEL=CentOS-Stream-8-x86_64-dvd ok" \
+        -kernel ${VM_KERNEL}                                            \
+        -initrd ${VM_INITRD}                                            \
+        -append "${VM_KCMDLINE}"                                        \
         ${EXTRA_QEMU_ARGS}
 }
 
+clean_up ()
+{
+    rm -rf ${KERNEL_DIR}
+}
 ############################### main ###############################
+
+if [ ${UID} != "0" ]
+then
+    die "$0 must be run as root"
+fi
 
 if [ -e ${HOME}/.config/qemu-script/${0##*/}.conf ]
 then
@@ -281,4 +389,6 @@ fi
 parse_args $@
 is_running
 my_setup
+extract_kernel
 run_qemu
+clean_up
