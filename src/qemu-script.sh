@@ -142,6 +142,12 @@ parse_args ()
     while [ -n "${1}" ]
     do
         case "$1" in
+            -d|--debug)
+                set -x
+            ;;
+            -e|--error)
+                set -e
+            ;;
             -i | --install)
                 VM_DEV_NET="e1000"
             ;;
