@@ -59,6 +59,17 @@ is_running ()
     fi
 }
 
+my_sudo ()
+{
+    if [ ${UID} != "0" ]
+    then
+        sudo $*
+    else
+        $*
+    fi
+    return $?
+}
+
 my_setup ()
 {
     if [ -z "${VM_IMG_1}" ]
@@ -262,7 +273,7 @@ extract_kernel ()
 
     KERNEL_DIR=$(mktemp -d /tmp/create-os-image.XXXXXX)
 
-    if ! losetup -P ${VM_LOOP} ${VM_ISO_1}
+    if ! my_sudo losetup -P ${VM_LOOP} ${VM_ISO_1}
     then
         rm -rf ${KERNEL_DIR}
         die "Could not create the ${VM_LOOP} device"
@@ -270,9 +281,9 @@ extract_kernel ()
 
     mkdir -p ${KERNEL_DIR}/${VM_LOOP}p1
 
-    if ! mount -o ro /dev/${VM_LOOP}p1 ${KERNEL_DIR}/${VM_LOOP}p1
+    if ! my_sudo mount -o ro /dev/${VM_LOOP}p1 ${KERNEL_DIR}/${VM_LOOP}p1
     then
-        losetup -d /dev/${VM_LOOP}
+        my_sudo losetup -d /dev/${VM_LOOP}
         rm -rf ${KERNEL_DIR}
         die "Could not mount the ${VM_LOOP} device"
     fi
@@ -281,8 +292,8 @@ extract_kernel ()
     then
         if [ ! -e ${KERNEL_DIR}/${VM_LOOP}p1/images/pxeboot/vmlinuz ]
         then
-            umount /dev/${VM_LOOP}p1
-            losetup -d /dev/${VM_LOOP}
+            my_sudo umount /dev/${VM_LOOP}p1
+            my_sudo losetup -d /dev/${VM_LOOP}
             rm -rf ${KERNEL_DIR}
             die "vmlinuz not found at /images/pxeboot"
         fi
@@ -295,8 +306,8 @@ extract_kernel ()
     then
         if [ ! -e ${KERNEL_DIR}/${VM_LOOP}p1/images/pxeboot/initrd.img ]
         then
-            umount /dev/${VM_LOOP}p1
-            losetup -d /dev/${VM_LOOP}
+            my_sudo umount /dev/${VM_LOOP}p1
+            my_sudo losetup -d /dev/${VM_LOOP}
             rm -rf ${KERNEL_DIR}
             die "initrd not found at /images/pxeboot"
         fi
@@ -309,8 +320,8 @@ extract_kernel ()
     then
         if [ ! -e ${KERNEL_DIR}/${VM_LOOP}p1/EFI/BOOT/BOOT.conf ]
         then
-            umount /dev/${VM_LOOP}p1
-            losetup -d /dev/${VM_LOOP}
+            my_sudo umount /dev/${VM_LOOP}p1
+            my_sudo losetup -d /dev/${VM_LOOP}
             rm -rf ${KERNEL_DIR}
             die "BOOT.conf not found at /EFI/BOOT"
         fi
@@ -319,8 +330,8 @@ extract_kernel ()
                             | cut -f 3- -d " ")
     fi
 
-    umount /dev/${VM_LOOP}p1
-    losetup -d /dev/${VM_LOOP}
+    my_sudo umount /dev/${VM_LOOP}p1
+    my_sudo losetup -d /dev/${VM_LOOP}
 }
 
 run_qemu ()
@@ -376,11 +387,6 @@ clean_up ()
     rm -rf ${KERNEL_DIR}
 }
 ############################### main ###############################
-
-if [ ${UID} != "0" ]
-then
-    die "$0 must be run as root"
-fi
 
 if [ -e ${HOME}/.config/qemu-script/${0##*/}.conf ]
 then
