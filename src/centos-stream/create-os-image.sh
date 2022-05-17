@@ -169,6 +169,12 @@ parse_args ()
     while [ -n "${1}" ]
     do
         case "$1" in
+            -d|--debug)
+                set -x
+            ;;
+            -e|--error)
+                set -e
+            ;;
             -i | --install)
                 VM_DEV_NET="e1000"
             ;;
@@ -382,10 +388,6 @@ run_qemu ()
         ${EXTRA_QEMU_ARGS}
 }
 
-clean_up ()
-{
-    rm -rf ${KERNEL_DIR}
-}
 ############################### main ###############################
 
 if [ -e ${HOME}/.config/qemu-script/${0##*/}.conf ]
@@ -397,4 +399,3 @@ is_running
 my_setup
 extract_kernel
 run_qemu
-clean_up
