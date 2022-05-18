@@ -409,6 +409,11 @@ run_qemu ()
         ${EXTRA_QEMU_ARGS}
 }
 
+clean_up ()
+{
+    rm -rf ${KERNEL_DIR}
+}
+
 ############################### main ###############################
 
 if [ -e ${HOME}/.config/qemu-script/${0##*/}.conf ]
@@ -420,3 +425,4 @@ is_running
 my_setup
 extract_kernel
 run_qemu
+clean_up
