@@ -34,6 +34,7 @@ VM_KERNEL=""
 VM_INITRD=""
 VM_KCMDLINE=""
 VM_LOOP=""
+VM_KS=""
 EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
 ##################  end default config  ###################
 
@@ -42,7 +43,6 @@ EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
 
 # Where is the qemu binary
 QEMU_BIN=$(command -v qemu-system-x86_64)
-QEMU_DAEMONIZE="-daemonize"
 KERNEL_DIR=""
 
 die ()
@@ -157,11 +157,6 @@ my_setup ()
             QEMU_BIN=/usr/libexec/qemu-kvm
         fi
     fi
-
-    if [ "${VM_SERIAL}" = "stdio" ]
-    then
-        QEMU_DAEMONIZE=""
-    fi
 }
 
 parse_args ()
@@ -226,9 +221,13 @@ parse_args ()
                 shift
                 VM_KCMDLINE=$1
             ;;
-            -loop)
+            -l|--loop)
                 shift
                 VM_LOOP=$1
+            ;;
+            -ks|--kickstart)
+                shift
+                VM_KS=$1
             ;;
             -c|--command)
                 shift
@@ -338,12 +337,34 @@ extract_kernel ()
 
     my_sudo umount /dev/${VM_LOOP}p1
     my_sudo losetup -d /dev/${VM_LOOP}
+
+    if [ -n "${VM_KS}" ]
+    then
+        if [ ! -e ${VM_KS} ]
+        then
+            die "${VM_KS}: not found"
+        fi
+
+        local kickstart_file=$(realpath ${VM_KS})
+
+        chmod u+w ${VM_INITRD}
+        mv ${VM_INITRD} ${VM_INITRD}.xz
+        unxz ${VM_INITRD}.xz
+        mkdir ${KERNEL_DIR}/initrd
+        pushd ${KERNEL_DIR}/initrd
+        my_sudo cpio -dim --quiet < ../initrd.img
+        my_sudo cp ${kickstart_file} ks.cfg
+        my_sudo find . | my_sudo cpio --create --format=newc \
+            | xz --check=crc32 --lzma2=dict=512KiB > ../initrd.img
+        popd
+        my_sudo rmdir -rf ${KERNEL_DIR}/initrd
+        VM_KCMDLINE="inst.ks=file:/ks.cfg inst.text inst.cmdline ${VM_KCMDLINE}"
+    fi
 }
 
 run_qemu ()
 {
     ${QEMU_BIN}                                                         \
-        ${QEMU_DAEMONIZE}                                               \
         -name ${VM_NAME}                                                \
         -cpu  ${VM_CPU}                                                 \
         -machine type=q35,accel=kvm,usb=on                              \
