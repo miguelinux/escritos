@@ -359,6 +359,7 @@ extract_kernel ()
         popd
         my_sudo rmdir -rf ${KERNEL_DIR}/initrd
         VM_KCMDLINE="inst.ks=file:/ks.cfg inst.text inst.cmdline ${VM_KCMDLINE}"
+        VM_KCMDLINE="${VM_KCMDLINE} console=tty0 console=ttyS0,115200n8 earlyprintk=ttyS0,115200n8"
     fi
 }
 
@@ -411,7 +412,7 @@ run_qemu ()
 
 clean_up ()
 {
-    rm -rf ${KERNEL_DIR}
+    my_sudo rm -rf ${KERNEL_DIR}
 }
 
 ############################### main ###############################
