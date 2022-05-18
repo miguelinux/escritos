@@ -1,4 +1,7 @@
 tmp
+*.cfg
+*.ks
+*.conf
 
 # http://www.gnu.org/software/automake
 
