@@ -200,6 +200,11 @@ parse_args ()
                     VM_BOOT_IMG=1
                     VM_BOOT_ISO=0
                 fi
+                if [ ${1} = "kernel" ]
+                then
+                    VM_BOOT_IMG=1
+                    VM_BOOT_ISO=2
+                fi
             ;;
             -serial)
                 shift
