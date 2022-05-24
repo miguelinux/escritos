@@ -328,14 +328,14 @@ extract_kernel ()
 
     if [ -z "${VM_KCMDLINE}" ]
     then
-        if [ ! -e ${KERNEL_DIR}/${VM_LOOP}p1/EFI/BOOT/BOOT.conf ]
+        if [ ! -e ${KERNEL_DIR}/${VM_LOOP}p1/EFI/BOOT/grub.cfg ]
         then
             my_sudo umount /dev/${VM_LOOP}p1
             my_sudo losetup -d /dev/${VM_LOOP}
             rm -rf ${KERNEL_DIR}
-            die "BOOT.conf not found at /EFI/BOOT"
+            die "grub.cfg not found at /EFI/BOOT"
         fi
-        VM_KCMDLINE=$(grep -m 1 vmlinuz ${KERNEL_DIR}/${VM_LOOP}p1/EFI/BOOT/BOOT.conf \
+        VM_KCMDLINE=$(grep -m 1 vmlinuz ${KERNEL_DIR}/${VM_LOOP}p1/EFI/BOOT/grub.cfg \
                             | sed -e "s/^[[:space:]]*//" \
                             | cut -f 3- -d " ")
     fi
