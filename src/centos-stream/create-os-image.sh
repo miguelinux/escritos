@@ -352,17 +352,13 @@ extract_kernel ()
 
         local kickstart_file=$(realpath ${VM_KS})
 
-        chmod u+w ${VM_INITRD}
-        mv ${VM_INITRD} ${VM_INITRD}.xz
-        unxz ${VM_INITRD}.xz
         mkdir ${KERNEL_DIR}/initrd
         pushd ${KERNEL_DIR}/initrd > /dev/null
-        my_sudo cpio -dim --quiet < ../initrd.img
-        my_sudo cp ${kickstart_file} ks.cfg
-        my_sudo find . | my_sudo cpio --create --format=newc \
-            | xz --check=crc32 --lzma2=dict=512KiB > ../initrd.img
+        cp ${kickstart_file} ks.cfg
+        find . | cpio --quiet --create --format=newc > ${KERNEL_DIR}/ks.img
         popd > /dev/null
-        my_sudo rm -rf ${KERNEL_DIR}/initrd
+        cat ${KERNEL_DIR}/ks.img ${VM_INITRD} > ${KERNEL_DIR}/initrd-ks.img
+        VM_INITRD=${KERNEL_DIR}/initrd-ks.img
         VM_KCMDLINE="inst.ks=file:/ks.cfg inst.text inst.cmdline ${VM_KCMDLINE}"
         VM_KCMDLINE="${VM_KCMDLINE} console=tty0 console=ttyS0,115200n8 earlyprintk=ttyS0,115200n8"
     fi
