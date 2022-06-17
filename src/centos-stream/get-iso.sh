@@ -124,7 +124,8 @@ fi
 
 if test -f ${ISO_STORAGE}/${ISO_FILE}
 then
-    echo exit 0
+    echo "No new ISO file"
+    exit 0
 fi
 
 if [ "${stream}" = "9" ]
