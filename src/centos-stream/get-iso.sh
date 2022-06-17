@@ -143,7 +143,7 @@ then
     pushd ${ISO_STORAGE} > /dev/null
     if ! sha256sum ${QUIET} -c ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso.SHA256SUM
     then
-        echo "Bad sha256sum"
+        echo >&2 "Bad sha256sum"
         rm -v ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso
         rm -v ${ISO_STORAGE}/CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso.SHA256SUM
         popd >> /dev/null
@@ -152,3 +152,5 @@ then
     popd > /dev/null
 fi
 
+# Create a symlink to the latest downloaded image
+ln --force --symbolic ${ISO_FILE} ${ISO_STORAGE}/CentOS-Stream-${stream}.iso
