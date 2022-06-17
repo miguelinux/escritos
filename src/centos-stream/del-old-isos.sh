@@ -52,7 +52,10 @@ show_help() {
 
 keep_first_del_others() {
     shift
-    rm -f $*
+    if [ -n "$*" ]
+    then
+        rm -f $*
+    fi
 }
 
 while [ -n "${1}" ]
