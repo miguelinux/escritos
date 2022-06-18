@@ -30,8 +30,6 @@ show_help() {
     echo "-d, --debug        Set debug mode in bash, i.e. set -x"
     echo "-e, --error        Set error mode in bash, i.e. set -e"
     echo "--distro DISTRO    Set the url DISTRO name part, i.e. 9-stream"
-    echo "--url URL          Set the base URL to download"
-    echo "--dir DIRECTORY    Set the url DIRECTORY name part"
     echo "-s, --storage PATH Set the PATH to save ISO file"
     echo "-h, --help         Shows this help"
     echo ""
@@ -97,16 +95,6 @@ then
 else
     stream=8
 fi
-
-if [ "${stream}" = "9" ]
-then
-    ISO_FILE=CentOS-Stream-9-${LATEST_DATE}-x86_64-dvd1.iso
-else
-    ISO_FILE=CentOS-Stream-8-x86_64-${LATEST_DATE}-dvd1.iso
-fi
-
-#${ISO_STORAGE}/${ISO_FILE}
-#ln --force --symbolic ${ISO_FILE} ${ISO_STORAGE}/CentOS-Stream-${stream}.iso
 
 rm -f ${ISO_STORAGE}/CentOS-Stream-${stream}-*.SHA*
 
