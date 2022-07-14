@@ -249,10 +249,11 @@ run_qemu ()
         -nographic                                                      \
         -device intel-hda                                               \
         -device hda-duplex                                              \
+        -object iothread,id=io1                                         \
+        -device virtio-blk-pci,drive=disk0,iothread=io1,bootindex=${VM_BOOT_IMG} \
         -drive file=${VM_OVMF_CODE},if=pflash,format=raw,unit=0,readonly=on \
         -drive file=${VM_OVMF_VARS},if=pflash,format=raw,unit=1         \
-        -drive file=${VM_IMG_1},format=${VM_IMG_FMT_1},cache=${VM_IMG_CACHE_1},if=none,index=0,id=disk0 \
-        -device virtio-blk-pci,drive=disk0,bootindex=${VM_BOOT_IMG}     \
+        -drive file=${VM_IMG_1},format=${VM_IMG_FMT_1},cache=${VM_IMG_CACHE_1},if=none,index=0,aio=native,id=disk0 \
         ${VM_EXTRA_BLOCKS}                                              \
         -spice port=5924,disable-ticketing=on                           \
         -device qxl-vga                                                 \
