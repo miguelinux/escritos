@@ -123,14 +123,16 @@ my_setup ()
         die "No loop device given"
     fi
 
-    if [ -d "${ISO_DIR}" ]
+    if [ ! -d "${ISO_DIR}" ]
     then
-        die "No directory to work (ISO_DIR) found"
+        die "${ISO_DIR}: No directory to work (ISO_DIR) found"
     fi
 }
 
 copy_iso ()
 {
+    local rsync_param
+
     ISO_TMP=$(mktemp -d /tmp/create-custom-iso.XXXXXX)
 
     if ! my_sudo losetup -P ${ISO_LOOP} ${ISO_NAME}
@@ -147,6 +149,18 @@ copy_iso ()
         rm -rf ${ISO_TMP}
         die "Could not mount the ${ISO_LOOP} device"
     fi
+
+    if [ "9" = "${ISO_DISTRO:0:1}" ]
+    then
+        rsync_param=""
+    else
+        #rsync_param="--exclude BaseOS --exclude AppStream"
+        rsync_param=""
+    fi
+
+    ISO_CUSTOM=$(mktemp -d ${ISO_DIR}/create-custom-iso.XXXXXX)
+
+    my_sudo rsync -a ${ISO_TMP}/${ISO_LOOP}p1/ ${ISO_CUSTOM} ${rsync_param}
 
     my_sudo umount /dev/${ISO_LOOP}p1
     my_sudo losetup -d /dev/${ISO_LOOP}
