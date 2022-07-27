@@ -1,0 +1,73 @@
+From ff5f67da98abab8f05c5cc0d6ad39e598eaafae5 Mon Sep 17 00:00:00 2001
+From: Jair Gonzalez <jair.de.jesus.gonzalez.plascencia@intel.com>
+Date: Mon, 25 Jan 2021 19:21:01 -0600
+Subject: [PATCH] installation_source: Don't try to remove a repo twice
+
+This workaround corrects a race condition caused by more than one GTK
+signal triggering a handler wich calls the _remove_repository method.
+
+Signed-off-by: Jair Gonzalez <jair.de.jesus.gonzalez.plascencia@intel.com>
+---
+ .../ui/gui/spokes/installation_source.py      | 44 +++++++++++--------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
+
+diff --git a/pyanaconda/ui/gui/spokes/installation_source.py b/pyanaconda/ui/gui/spokes/installation_source.py
+index d0d4da7..8260ef2 100644
+--- a/pyanaconda/ui/gui/spokes/installation_source.py
++++ b/pyanaconda/ui/gui/spokes/installation_source.py
+@@ -1686,27 +1686,33 @@ class SourceSpoke(NormalSpoke, GUISpokeInputCheckHandler, SourceSwitchHandler):
+         :param repo_model_path: repo_model_path of what we can remove or None
+         :type repo_model_path: repo_store repo_model_path
+         """
+-        if repo_model_path is not None:
+-            itr = self._repo_store[repo_model_path].iter
+-        else:
+-            itr = self._repo_selection.get_selected()[1]
+-
+-        if not itr:
+-            return
++        with self._repo_store_lock:
++            itr = None
++            if repo_model_path is not None:
++                path = Gtk.TreePath(repo_model_path)
++                for repo_item in self._repo_store:
++                    if repo_item.path == path:
++                        itr = self._repo_store.get_iter(path)
++                        break
++            else:
++                itr = self._repo_selection.get_selected()[1]
+ 
+-        # Remove the input validation checks for this repo
+-        repo = self._repo_store[itr][REPO_OBJ]
+-        # avoid crash when the source is changed because of initialization
+-        if repo.repo_id in self._repo_checks:
+-            self.remove_check(self._repo_checks[repo.repo_id].name_check)
+-            self.remove_check(self._repo_checks[repo.repo_id].url_check)
+-            self.remove_check(self._repo_checks[repo.repo_id].proxy_check)
+-            del self._repo_checks[repo.repo_id]
++            if not itr:
++                return
+ 
+-        self._repo_store.remove(itr)
+-        if len(self._repo_store) == 0:
+-            self._clear_repo_info()
+-            self._repo_entry_box.set_sensitive(False)
++            # Remove the input validation checks for this repo
++            repo = self._repo_store[itr][REPO_OBJ]
++            # avoid crash when the source is changed because of initialization
++            if repo.repo_id in self._repo_checks:
++                self.remove_check(self._repo_checks[repo.repo_id].name_check)
++                self.remove_check(self._repo_checks[repo.repo_id].url_check)
++                self.remove_check(self._repo_checks[repo.repo_id].proxy_check)
++                del self._repo_checks[repo.repo_id]
++
++            self._repo_store.remove(itr)
++            if len(self._repo_store) == 0:
++                self._clear_repo_info()
++                self._repo_entry_box.set_sensitive(False)
+ 
+     def on_resetRepos_clicked(self, button):
+         """ Revert to the default list of repositories
+-- 
+2.18.4
+
