@@ -8,6 +8,8 @@ ISO_DISTRO=8-stream
 ISO_STORAGE=.
 ISO_DIR=/tmp/iso_dir
 ISO_LOOP=""
+ISO_CUSTOM=""
+ISO_TMP=""
 
 SILENT="--silent"
 QUIET="--quiet"
@@ -66,43 +68,6 @@ show_help() {
     echo ""
     exit
 }
-
-while [ -n "${1}" ]
-do
-    case "$1" in
-        -h|--help)
-            SHOW_HELP=1
-        ;;
-        -d|--debug)
-            set -x
-        ;;
-        -e|--error)
-            set -e
-        ;;
-        -v|--verbose)
-            SILENT=""
-            QUIET=""
-        ;;
-        --distro)
-            shift
-            ISO_DISTRO=$1
-        ;;
-        --dir)
-            shift
-            ISO_DIR=$1
-        ;;
-        -s|--storage)
-            shift
-            ISO_STORAGE=$1
-        ;;
-    esac
-    shift
-done
-
-if [ ${SHOW_HELP} -eq 1 ]
-then
-    show_help
-fi
 
 my_setup ()
 {
@@ -164,11 +129,67 @@ copy_iso ()
 
     my_sudo umount /dev/${ISO_LOOP}p1
     my_sudo losetup -d /dev/${ISO_LOOP}
-    my_sudo rm -rf ${ISO_TMP}
 }
 
+modify_iso ()
+{
+    if [ ! -f ${ISO_CUSTOM}/images/install.img ]
+    then
+        delete_tmp
+        die "${ISO_CUSTOM}/images/install.img: not found"
+    fi
+    my_sudo unsquashfs -quiet -dest ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img
+
+    mkdir -p ${ISO_TMP}/rootfs
+
+    my_sudo mount ${ISO_CUSTOM}/images/squashfs-root/LiveOS/rootfs.img ${ISO_TMP}/rootfs
+}
+
+delete_tmp ()
+{
+    my_sudo rm -rf ${ISO_TMP}
+    my_sudo rm -rf ${ISO_CUSTOM}
+}
 #################################    main    #################################
+
+while [ -n "${1}" ]
+do
+    case "$1" in
+        -h|--help)
+            SHOW_HELP=1
+        ;;
+        -d|--debug)
+            set -x
+        ;;
+        -e|--error)
+            set -e
+        ;;
+        -v|--verbose)
+            SILENT=""
+            QUIET=""
+        ;;
+        --distro)
+            shift
+            ISO_DISTRO=$1
+        ;;
+        --dir)
+            shift
+            ISO_DIR=$1
+        ;;
+        -s|--storage)
+            shift
+            ISO_STORAGE=$1
+        ;;
+    esac
+    shift
+done
+
+if [ ${SHOW_HELP} -eq 1 ]
+then
+    show_help
+fi
 
 my_setup
 copy_iso
-
+modify_iso
+delete_tmp
