@@ -8,11 +8,18 @@ ISO_DISTRO=8-stream
 ISO_STORAGE=.
 ISO_DIR=/tmp/iso_dir
 ISO_LOOP=""
+ANACONDA_FILES_DIR=/tmp/anaconda
+RPM_DIR=/tmp/rpms
+NEW_REPO_NAME=""
+REPO_COMPS_FILE=""
+
+#SILENT="--silent"
+QUIET="-quiet"
+VERBOSE=""
+
+# Runtime fillled variables
 ISO_CUSTOM=""
 ISO_TMP=""
-
-SILENT="--silent"
-QUIET="--quiet"
 
 SHOW_HELP=0
 
@@ -39,7 +46,23 @@ my_sudo ()
     return $?
 }
 
-show_help() {
+my_cp ()
+{
+    local orig=$1
+    local dest=$2
+
+    if [ ! -e ${dest} ]
+    then
+        # Do a hard link instead of a copy
+        if ! my_sudo ln ${orig} ${dest} 2> /dev/null
+        then
+            my_sudo cp ${orig} ${dest}
+        fi
+    fi
+}
+
+show_help ()
+{
     echo "Usage: $0 [parameters]"
     echo ""
     echo "PARAMETERS"
@@ -92,6 +115,29 @@ my_setup ()
     then
         die "${ISO_DIR}: No directory to work (ISO_DIR) found"
     fi
+
+    if [ ! -d ${ANACONDA_FILES_DIR} ]
+    then
+        die "${ANACONDA_FILES_DIR}: anaconda files dir not found"
+    fi
+
+    if [ ! -d ${RPM_DIR} ]
+    then
+        die "${RPM_DIR}: RPM dir not found"
+    fi
+
+    if [ -z "${NEW_REPO_NAME}" ]
+    then
+        die "No new repo name (NEW_REPO_NAME) given"
+    fi
+
+    if [ -n ${REPO_COMPS_FILE} ]
+    then
+        if [ ! -e ${REPO_COMPS_FILE} ]
+        then
+            die "${REPO_COMPS_FILE}:  comps file not found"
+        fi
+    fi
 }
 
 copy_iso ()
@@ -125,7 +171,7 @@ copy_iso ()
 
     ISO_CUSTOM=$(mktemp -d ${ISO_DIR}/create-custom-iso.XXXXXX)
 
-    my_sudo rsync -a ${ISO_TMP}/${ISO_LOOP}p1/ ${ISO_CUSTOM} ${rsync_param}
+    my_sudo rsync -a ${VERBOSE} ${ISO_TMP}/${ISO_LOOP}p1/ ${ISO_CUSTOM} ${rsync_param}
 
     my_sudo umount /dev/${ISO_LOOP}p1
     my_sudo losetup -d /dev/${ISO_LOOP}
@@ -138,11 +184,108 @@ modify_iso ()
         delete_tmp
         die "${ISO_CUSTOM}/images/install.img: not found"
     fi
-    my_sudo unsquashfs -quiet -dest ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img
+
+    my_sudo unsquashfs ${QUIET} -n -dest ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img
 
     mkdir -p ${ISO_TMP}/rootfs
 
     my_sudo mount ${ISO_CUSTOM}/images/squashfs-root/LiveOS/rootfs.img ${ISO_TMP}/rootfs
+
+    ################## Anaconda Hacks ##################
+    for p in ${ANACONDA_FILES_DIR}/*.patch
+    do
+        if [ -f $p ]
+        then
+            my_sudo patch -d ${ISO_TMP}/rootfs/usr/lib64/python3.6/site-packages -p1 < $p
+        fi
+    done
+
+    for f in ${ANACONDA_FILES_DIR}/*.conf
+    do
+        if [ -f $f ]
+        then
+            my_sudo cp $f ${ISO_TMP}/rootfs/etc/anaconda/conf.d
+        fi
+
+    done
+    ################## Anaconda Hacks END ##################
+
+    my_sudo umount ${ISO_TMP}/rootfs
+    my_sudo rm -f ${ISO_CUSTOM}/images/install.img
+    pushd ${ISO_CUSTOM}/images > /dev/null
+    my_sudo mksquashfs squashfs-root install.img ${QUIET} -no-progress -comp xz -Xbcj x86
+    popd > /dev/null
+
+    # Update SHA256 from install.img at treeinfo file
+    local install_sha256
+    install_sha256=$(sha256sum ${ISO_CUSTOM}/images/install.img | cut -f 1 -d " ")
+    my_sudo sed -i "/^images\/install/c images/install.img = sha256:${install_sha256}" ${ISO_CUSTOM}/.treeinfo
+
+
+    ################## Copy RPMs ##################
+
+    my_sudo mkdir -p ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages
+
+    for f in $(find ${RPM_DIR} -name \*x86_64.rpm)
+    do
+        my_cp $f ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages
+    done
+    for f in $(find ${RPM_DIR} -name \*i686.rpm)
+    do
+        my_cp $f ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages
+    done
+    for f in $(find ${RPM_DIR} -name \*noarch.rpm)
+    do
+        my_cp $f ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages
+    done
+
+    local comps_param=""
+    if [ -n ${REPO_COMPS_FILE} ]
+    then
+        my_cp ${REPO_COMPS_FILE} ${ISO_CUSTOM}/${NEW_REPO_NAME}
+        comps_param="-g ${REPO_COMPS_FILE##*/}"
+    fi
+
+    createrepo_c ${comps_param} ${ISO_CUSTOM}/${NEW_REPO_NAME}
+
+    if [ -n ${REPO_COMPS_FILE} ]
+    then
+        echo ""  >> ${ISO_CUSTOM}/.treeinfo
+        echo "[variant-${NEW_REPO_NAME}]"  >> ${ISO_CUSTOM}/.treeinfo
+        echo "id = ${NEW_REPO_NAME}"       >> ${ISO_CUSTOM}/.treeinfo
+        echo "name = ${NEW_REPO_NAME}"     >> ${ISO_CUSTOM}/.treeinfo
+        echo "packages = ${NEW_REPO_NAME}/Packages"  >> ${ISO_CUSTOM}/.treeinfo
+        echo "repository = ${NEW_REPO_NAME}"  >> ${ISO_CUSTOM}/.treeinfo
+        echo "type = variant"  >> ${ISO_CUSTOM}/.treeinfo
+        echo "uid = ${NEW_REPO_NAME}"  >> ${ISO_CUSTOM}/.treeinfo
+        echo ""  >> ${ISO_CUSTOM}/.treeinfo
+    fi
+}
+
+create_iso ()
+{
+runcmd xorrisofs ${isoargs} -o ${outroot}/images/boot.iso \
+       -R -J -V '${isolabel}' \
+       --grub2-mbr ${inroot}/usr/lib/grub/i386-pc/boot_hybrid.img \
+       -partition_offset 16 \
+       -appended_part_as_gpt \
+       -append_partition 2 C12A7328-F81F-11D2-BA4B-00A0C93EC93B ${outroot}/images/efiboot.img \
+       -iso_mbr_part_type EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 \
+       -c boot.cat --boot-catalog-hide \
+       -b images/eltorito.img \
+       -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
+       -eltorito-alt-boot \
+       -e '--interval:appended_partition_2:all::' -no-emul-boot \
+       -graft-points \
+       .discinfo=${outroot}/.discinfo \
+       ${STAGE2IMG}=${outroot}/${STAGE2IMG} \
+       ${KERNELDIR}=${outroot}/${KERNELDIR} \
+       ${filegraft} \
+       ${GRUB2DIR}=${outroot}/${GRUB2DIR} \
+       ${GRUB2DIR}/i386-pc=${inroot}/usr/lib/grub/i386-pc \
+       images/eltorito.img=${outroot}/images/eltorito.img \
+       EFI/BOOT=${outroot}/EFI/BOOT
+treeinfo images-${basearch} boot.iso images/boot.iso
 }
 
 delete_tmp ()
@@ -165,8 +308,9 @@ do
             set -e
         ;;
         -v|--verbose)
-            SILENT=""
+            #SILENT=""
             QUIET=""
+            VERBOSE="-v"
         ;;
         --distro)
             shift
@@ -192,4 +336,5 @@ fi
 my_setup
 copy_iso
 modify_iso
+create_iso
 delete_tmp
