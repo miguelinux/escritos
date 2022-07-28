@@ -14,8 +14,9 @@ RPM_DIR=/tmp/rpms
 NEW_REPO_NAME=""
 REPO_COMPS_FILE=""
 
-#SILENT="--silent"
-QUIET="-quiet -no-progress"
+SILENT="--silent"
+QUIET="--quiet"
+QUIET_S="-quiet -no-progress"
 VERBOSE=""
 
 # Runtime fillled variables
@@ -55,9 +56,9 @@ my_cp ()
     if [ ! -e ${dest} ]
     then
         # Do a hard link instead of a copy
-        if ! my_sudo ln ${orig} ${dest} 2> /dev/null
+        if ! ln ${orig} ${dest} 2> /dev/null
         then
-            my_sudo cp ${orig} ${dest}
+            cp ${orig} ${dest}
         fi
     fi
 }
@@ -186,7 +187,7 @@ modify_iso ()
         die "${ISO_CUSTOM}/images/install.img: not found"
     fi
 
-    my_sudo unsquashfs ${QUIET} -dest ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img
+    my_sudo unsquashfs ${QUIET_S} -dest ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img
 
     mkdir -p ${ISO_TMP}/rootfs
 
@@ -197,7 +198,7 @@ modify_iso ()
     do
         if [ -f $p ]
         then
-            my_sudo patch -d ${ISO_TMP}/rootfs/usr/lib64/python3.6/site-packages -p1 < $p
+            my_sudo patch ${SILENT} -d ${ISO_TMP}/rootfs/usr/lib64/python3.6/site-packages -p1 < $p
         fi
     done
 
@@ -213,20 +214,21 @@ modify_iso ()
 
     my_sudo umount ${ISO_TMP}/rootfs
     my_sudo rm -f ${ISO_CUSTOM}/images/install.img
-    #pushd ${ISO_CUSTOM}/images > /dev/null
-    my_sudo mksquashfs ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img ${QUIET} -comp xz -Xbcj x86
+    my_sudo mksquashfs ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img ${QUIET_S} -comp xz -Xbcj x86
     my_sudo rm -rf ${ISO_CUSTOM}/images/squashfs-root
-    #popd > /dev/null
 
     # Update SHA256 from install.img at treeinfo file
     local install_sha256
     install_sha256=$(sha256sum ${ISO_CUSTOM}/images/install.img | cut -f 1 -d " ")
-    my_sudo sed -i "/^images\/install/c images/install.img = sha256:${install_sha256}" ${ISO_CUSTOM}/.treeinfo
 
+    # Change permision for directory and file
+    my_sudo chmod 777 ${ISO_CUSTOM}
+    my_sudo chmod 666 ${ISO_CUSTOM}/.treeinfo
+    sed -i "/^images\/install/c images/install.img = sha256:${install_sha256}" ${ISO_CUSTOM}/.treeinfo
 
     ################## Copy RPMs ##################
 
-    my_sudo mkdir -p ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages
+    mkdir -p ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages
 
     for f in $(find ${RPM_DIR} -name \*x86_64.rpm)
     do
@@ -244,23 +246,23 @@ modify_iso ()
     local comps_param=""
     if [ -n ${REPO_COMPS_FILE} ]
     then
-        my_cp ${REPO_COMPS_FILE} ${ISO_CUSTOM}/${NEW_REPO_NAME}
+        my_sudo cp ${REPO_COMPS_FILE} ${ISO_CUSTOM}/${NEW_REPO_NAME}
         comps_param="-g ${REPO_COMPS_FILE##*/}"
     fi
 
-    createrepo_c ${comps_param} ${ISO_CUSTOM}/${NEW_REPO_NAME}
+    my_sudo createrepo_c ${QUIET} ${comps_param} ${ISO_CUSTOM}/${NEW_REPO_NAME}
+    my_sudo rm ${ISO_CUSTOM}/${NEW_REPO_NAME}/${REPO_COMPS_FILE##*/}
 
     if [ -n ${REPO_COMPS_FILE} ]
     then
-        echo ""  >> ${ISO_CUSTOM}/.treeinfo
-        echo "[variant-${NEW_REPO_NAME}]"  >> ${ISO_CUSTOM}/.treeinfo
-        echo "id = ${NEW_REPO_NAME}"       >> ${ISO_CUSTOM}/.treeinfo
-        echo "name = ${NEW_REPO_NAME}"     >> ${ISO_CUSTOM}/.treeinfo
+        echo "[variant-${NEW_REPO_NAME}]"            >> ${ISO_CUSTOM}/.treeinfo
+        echo "id = ${NEW_REPO_NAME}"                 >> ${ISO_CUSTOM}/.treeinfo
+        echo "name = ${NEW_REPO_NAME}"               >> ${ISO_CUSTOM}/.treeinfo
         echo "packages = ${NEW_REPO_NAME}/Packages"  >> ${ISO_CUSTOM}/.treeinfo
-        echo "repository = ${NEW_REPO_NAME}"  >> ${ISO_CUSTOM}/.treeinfo
-        echo "type = variant"  >> ${ISO_CUSTOM}/.treeinfo
-        echo "uid = ${NEW_REPO_NAME}"  >> ${ISO_CUSTOM}/.treeinfo
-        echo ""  >> ${ISO_CUSTOM}/.treeinfo
+        echo "repository = ${NEW_REPO_NAME}"         >> ${ISO_CUSTOM}/.treeinfo
+        echo "type = variant"                        >> ${ISO_CUSTOM}/.treeinfo
+        echo "uid = ${NEW_REPO_NAME}"                >> ${ISO_CUSTOM}/.treeinfo
+        echo ""                                      >> ${ISO_CUSTOM}/.treeinfo
     fi
 }
 
@@ -282,7 +284,7 @@ create_iso ()
     fi
 
     xorrisofs -iso-level 3 \
-       -o ${ISO_DIR}/${iso_name} \
+       -o ${ISO_STORAGE}/${iso_name} \
        -R -J -V '${iso_label}' \
        --grub2-mbr /usr/lib/grub/i386-pc/boot_hybrid.img \
        -partition_offset 16 \
@@ -322,8 +324,9 @@ do
             set -e
         ;;
         -v|--verbose)
-            #SILENT=""
+            SILENT=""
             QUIET=""
+            QUIET_S=""
             VERBOSE="-v --progress"
         ;;
         --distro)
@@ -350,5 +353,5 @@ fi
 my_setup
 copy_iso
 modify_iso
-create_iso
-delete_tmp
+#create_iso
+#delete_tmp
