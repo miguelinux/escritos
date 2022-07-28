@@ -8,13 +8,14 @@ ISO_DISTRO=8-stream
 ISO_STORAGE=.
 ISO_DIR=/tmp/iso_dir
 ISO_LOOP=""
+
 ANACONDA_FILES_DIR=/tmp/anaconda
 RPM_DIR=/tmp/rpms
 NEW_REPO_NAME=""
 REPO_COMPS_FILE=""
 
 #SILENT="--silent"
-QUIET="-quiet"
+QUIET="-quiet -no-progress"
 VERBOSE=""
 
 # Runtime fillled variables
@@ -185,7 +186,7 @@ modify_iso ()
         die "${ISO_CUSTOM}/images/install.img: not found"
     fi
 
-    my_sudo unsquashfs ${QUIET} -n -dest ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img
+    my_sudo unsquashfs ${QUIET} -dest ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img
 
     mkdir -p ${ISO_TMP}/rootfs
 
@@ -212,9 +213,10 @@ modify_iso ()
 
     my_sudo umount ${ISO_TMP}/rootfs
     my_sudo rm -f ${ISO_CUSTOM}/images/install.img
-    pushd ${ISO_CUSTOM}/images > /dev/null
-    my_sudo mksquashfs squashfs-root install.img ${QUIET} -no-progress -comp xz -Xbcj x86
-    popd > /dev/null
+    #pushd ${ISO_CUSTOM}/images > /dev/null
+    my_sudo mksquashfs ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img ${QUIET} -comp xz -Xbcj x86
+    my_sudo rm -rf ${ISO_CUSTOM}/images/squashfs-root
+    #popd > /dev/null
 
     # Update SHA256 from install.img at treeinfo file
     local install_sha256
@@ -264,28 +266,40 @@ modify_iso ()
 
 create_iso ()
 {
-runcmd xorrisofs ${isoargs} -o ${outroot}/images/boot.iso \
-       -R -J -V '${isolabel}' \
-       --grub2-mbr ${inroot}/usr/lib/grub/i386-pc/boot_hybrid.img \
+    local iso_label
+    local iso_name
+    local my_ww=$(date "+%V")
+    # Work week hack
+    let "my_ww=my_ww+1"
+
+    if [ "9" = "${ISO_DISTRO:0:1}" ]
+    then
+        iso_name=CentOS-Stream-9-${NEW_REPO_NAME}-WW${my_ww}.$(date "+%u")-x86_64-dvd1.iso
+        iso_label=CentOS-Stream-9-x86_64-dvd
+    else
+        iso_name=CentOS-Stream-8-x86_64-${NEW_REPO_NAME}-WW${my_ww}.$(date "+%u")-dvd1.iso
+        iso_label=CentOS-Stream-8-x86_64-dvd
+    fi
+
+    xorrisofs -iso-level 3 \
+       -o ${ISO_DIR}/${iso_name} \
+       -R -J -V '${iso_label}' \
+       --grub2-mbr /usr/lib/grub/i386-pc/boot_hybrid.img \
        -partition_offset 16 \
        -appended_part_as_gpt \
-       -append_partition 2 C12A7328-F81F-11D2-BA4B-00A0C93EC93B ${outroot}/images/efiboot.img \
+       -append_partition 2 C12A7328-F81F-11D2-BA4B-00A0C93EC93B ${ISO_CUSTOM}/images/efiboot.img \
        -iso_mbr_part_type EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 \
-       -c boot.cat --boot-catalog-hide \
-       -b images/eltorito.img \
+       -c ${ISO_CUSTOM}/isolinux/boot.cat --boot-catalog-hide \
+       -b ${ISO_CUSTOM}/isolinux/isolinux.bin \
        -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
        -eltorito-alt-boot \
        -e '--interval:appended_partition_2:all::' -no-emul-boot \
-       -graft-points \
-       .discinfo=${outroot}/.discinfo \
-       ${STAGE2IMG}=${outroot}/${STAGE2IMG} \
-       ${KERNELDIR}=${outroot}/${KERNELDIR} \
-       ${filegraft} \
-       ${GRUB2DIR}=${outroot}/${GRUB2DIR} \
-       ${GRUB2DIR}/i386-pc=${inroot}/usr/lib/grub/i386-pc \
-       images/eltorito.img=${outroot}/images/eltorito.img \
-       EFI/BOOT=${outroot}/EFI/BOOT
-treeinfo images-${basearch} boot.iso images/boot.iso
+       ${ISO_CUSTOM}
+       #-graft-points \
+       #.discinfo=${ISO_CUSTOM}/.discinfo \
+       #images/install.img=${ISO_CUSTOM}/images/install.img \
+       #images/pxeboot=${ISO_CUSTOM}/images/pxeboot \
+       #EFI/BOOT=${ISO_CUSTOM}/EFI/BOOT
 }
 
 delete_tmp ()
@@ -310,7 +324,7 @@ do
         -v|--verbose)
             #SILENT=""
             QUIET=""
-            VERBOSE="-v"
+            VERBOSE="-v --progress"
         ;;
         --distro)
             shift
