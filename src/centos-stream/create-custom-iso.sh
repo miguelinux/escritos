@@ -57,6 +57,14 @@ my_cp ()
             cp ${orig} ${dest}
         fi
     fi
+    if [ -d ${dest} ]
+    then
+        # Do a hard link instead of a copy
+        if ! ln ${orig} ${dest} 2> /dev/null
+        then
+            cp ${orig} ${dest}
+        fi
+    fi
 }
 
 show_help ()
@@ -94,12 +102,12 @@ my_setup ()
 {
     if [ "9" = "${ISO_DISTRO:0:1}" ]
     then
-        ISO_NAME=$(ls ${ISO_STORAGE}/CentOS-Stream-9-*-x86_64-dvd1.iso)
+        ISO_NAME=$(ls ${ISO_STORAGE}/CentOS-Stream-9-202*-x86_64-dvd1.iso)
     else
-        ISO_NAME=$(ls ${ISO_STORAGE}/CentOS-Stream-8-x86_64-*-dvd1.iso)
+        ISO_NAME=$(ls ${ISO_STORAGE}/CentOS-Stream-8-x86_64-202*-dvd1.iso)
     fi
 
-    if [ ! -f ${ISO_NAME} ]
+    if [ ! -f "${ISO_NAME}" ]
     then
         die "${ISO_NAME}: Not found"
     fi
@@ -220,6 +228,8 @@ modify_iso ()
     # Change permision for directory and file
     my_sudo chmod 777 ${ISO_CUSTOM}
     my_sudo chmod 666 ${ISO_CUSTOM}/.treeinfo
+    # Copy for debug later
+    cp ${ISO_CUSTOM}/.treeinfo ${ISO_TMP}
     sed -i "/^images\/install/c images/install.img = sha256:${install_sha256}" ${ISO_CUSTOM}/.treeinfo
 
     ################## Copy RPMs ##################
@@ -262,9 +272,6 @@ modify_iso ()
         echo ""                                      >> ${ISO_CUSTOM}/.treeinfo
 
         sed -i "/variants/c variants = AppStream,BaseOS,${NEW_REPO_NAME}" ${ISO_CUSTOM}/.treeinfo
-        # drop [general] section
-        #sed -i '/\[gene/,/\[header/{//!d}' ${ISO_CUSTOM}/.treeinfo
-        #sed -i '/\[gene/d' ${ISO_CUSTOM}/.treeinfo
     fi
 }
 
