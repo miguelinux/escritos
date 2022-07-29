@@ -249,6 +249,7 @@ modify_iso ()
     my_sudo createrepo_c ${QUIET} ${comps_param} ${ISO_CUSTOM}/${NEW_REPO_NAME}
     my_sudo rm ${ISO_CUSTOM}/${NEW_REPO_NAME}/${REPO_COMPS_FILE##*/}
 
+    # add new repo section
     if [ -n ${REPO_COMPS_FILE} ]
     then
         echo "[variant-${NEW_REPO_NAME}]"            >> ${ISO_CUSTOM}/.treeinfo
@@ -259,6 +260,11 @@ modify_iso ()
         echo "type = variant"                        >> ${ISO_CUSTOM}/.treeinfo
         echo "uid = ${NEW_REPO_NAME}"                >> ${ISO_CUSTOM}/.treeinfo
         echo ""                                      >> ${ISO_CUSTOM}/.treeinfo
+
+        sed -i "/variants/c variants = AppStream,BaseOS,${NEW_REPO_NAME}" ${ISO_CUSTOM}/.treeinfo
+        # drop [general] section
+        #sed -i '/\[gene/,/\[header/{//!d}' ${ISO_CUSTOM}/.treeinfo
+        #sed -i '/\[gene/d' ${ISO_CUSTOM}/.treeinfo
     fi
 }
 
@@ -300,6 +306,7 @@ delete_tmp ()
     my_sudo rm -rf ${ISO_TMP}
     my_sudo rm -rf ${ISO_CUSTOM}
 }
+
 #################################    main    #################################
 
 ### Get user config
@@ -323,6 +330,7 @@ do
         -v|--verbose)
             SILENT=""
             QUIET=""
+            QUIET_X=""
             QUIET_S=""
             VERBOSE="-v"
             VERBOSE_R="-v --progress"
