@@ -113,9 +113,9 @@ run_qemu ()
 #    -device ide-hd,bus=sata.3,drive=InstallMedia \
 }
 
-if [ -e ${HOME}/.config/qemu-script/${0##*/}.conf ]
+if [ -e ${HOME}/.config/qemu-scripts/${0##*/}.conf ]
 then
-    source ${HOME}/.config/qemu-script/${0##*/}.conf
+    source ${HOME}/.config/qemu-scripts/${0##*/}.conf
 fi
 
 my_setup

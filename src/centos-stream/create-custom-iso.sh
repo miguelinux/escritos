@@ -79,8 +79,8 @@ show_help ()
     echo "  Storage = ${ISO_STORAGE}"
     echo "  Loop    = ${ISO_LOOP}"
     echo ""
-    echo -n "config file at: $HOME/.config/qemu-script/${0##*/}.conf"
-    if test -f $HOME/.config/qemu-script/${0##*/}.conf
+    echo -n "config file at: $HOME/.config/qemu-scripts/${0##*/}.conf"
+    if test -f $HOME/.config/qemu-scripts/${0##*/}.conf
     then
         echo "; Found"
     else
@@ -310,9 +310,9 @@ delete_tmp ()
 #################################    main    #################################
 
 ### Get user config
-if [ -e ${HOME}/.config/qemu-script/${0##*/}.conf ]
+if [ -e ${HOME}/.config/qemu-scripts/${0##*/}.conf ]
 then
-    source ${HOME}/.config/qemu-script/${0##*/}.conf
+    source ${HOME}/.config/qemu-scripts/${0##*/}.conf
 fi
 
 while [ -n "${1}" ]

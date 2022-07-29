@@ -258,9 +258,9 @@ parse_args ()
             ;;
             -f|--config)
                 shift
-                if [ -e ${HOME}/.config/qemu-script/$1 ]
+                if [ -e ${HOME}/.config/qemu-scripts/$1 ]
                 then
-                    source ${HOME}/.config/qemu-script/$1
+                    source ${HOME}/.config/qemu-scripts/$1
                 else
                     if [ -e $1 ]
                     then
@@ -423,9 +423,9 @@ clean_up ()
 
 ############################### main ###############################
 
-if [ -e ${HOME}/.config/qemu-script/${0##*/}.conf ]
+if [ -e ${HOME}/.config/qemu-scripts/${0##*/}.conf ]
 then
-    source ${HOME}/.config/qemu-script/${0##*/}.conf
+    source ${HOME}/.config/qemu-scripts/${0##*/}.conf
 fi
 parse_args $@
 is_running

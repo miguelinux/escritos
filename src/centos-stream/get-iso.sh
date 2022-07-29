@@ -20,9 +20,9 @@ QUIET="--quiet"
 SHOW_HELP=0
 
 ### Get user config
-if test -f $HOME/.config/qemu-script/get-iso.conf
+if test -f $HOME/.config/qemu-scripts/get-iso.conf
 then
-    source $HOME/.config/qemu-script/get-iso.conf
+    source $HOME/.config/qemu-scripts/get-iso.conf
 fi
 
 show_help() {
@@ -45,8 +45,8 @@ show_help() {
     echo "  Dir     = ${ISO_DIR}"
     echo "  Storage = ${ISO_STORAGE}"
     echo ""
-    echo -n "config file at: $HOME/.config/qemu-script/get-iso.conf"
-    if test -f $HOME/.config/qemu-script/get-iso.conf
+    echo -n "config file at: $HOME/.config/qemu-scripts/get-iso.conf"
+    if test -f $HOME/.config/qemu-scripts/get-iso.conf
     then
         echo "; Found"
     else
