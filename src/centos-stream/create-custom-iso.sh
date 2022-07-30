@@ -20,6 +20,7 @@ QUIET_X="-quiet"
 QUIET_S="-quiet -no-progress"
 VERBOSE=""
 VERBOSE_R=""
+SHOW_INFO=""
 
 # Runtime fillled variables
 ISO_CUSTOM=""
@@ -31,6 +32,14 @@ die ()
 {
     >&2 echo -e "${*}"
     exit 1
+}
+
+info ()
+{
+    if [ -n "${SHOW_INFO}" ]
+    then
+        echo -e "${*}"
+    fi
 }
 
 my_sudo ()
@@ -74,6 +83,7 @@ show_help ()
     echo "PARAMETERS"
     echo ""
     echo "-v, --verbose      Shows commands output"
+    echo "-i, --info         Shows current step from script"
     echo "-d, --debug        Set debug mode in bash, i.e. set -x"
     echo "-e, --error        Set error mode in bash, i.e. set -e"
     echo "--distro DISTRO    Set the url DISTRO name part, i.e. 9-stream"
@@ -177,6 +187,7 @@ copy_iso ()
 
     ISO_CUSTOM=$(mktemp -d ${ISO_DIR}/create-custom-iso.XXXXXX)
 
+    info "Copy ISO to ${ISO_CUSTOM}."
     my_sudo rsync -a ${VERBOSE_R} ${ISO_TMP}/${ISO_LOOP}p1/ ${ISO_CUSTOM} ${rsync_param}
 
     my_sudo umount /dev/${ISO_LOOP}p1
@@ -191,6 +202,11 @@ modify_iso ()
         die "${ISO_CUSTOM}/images/install.img: not found"
     fi
 
+    # Change permision for directory and file
+    my_sudo chown -R ${UID} ${ISO_CUSTOM}
+    find ${ISO_CUSTOM} -type d -exec chmod 755 {} \;
+
+    info "Unsquash rootfs."
     my_sudo unsquashfs ${QUIET_S} -dest ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img
 
     mkdir -p ${ISO_TMP}/rootfs
@@ -198,6 +214,7 @@ modify_iso ()
     my_sudo mount ${ISO_CUSTOM}/images/squashfs-root/LiveOS/rootfs.img ${ISO_TMP}/rootfs
 
     ################## Anaconda Hacks ##################
+    info "Applying anaconda hacks."
     for p in ${ANACONDA_FILES_DIR}/*.patch
     do
         if [ -f $p ]
@@ -218,6 +235,7 @@ modify_iso ()
 
     my_sudo umount ${ISO_TMP}/rootfs
     my_sudo rm -f ${ISO_CUSTOM}/images/install.img
+    info "Squash rootfs."
     my_sudo mksquashfs ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img ${QUIET_S} -comp xz -Xbcj x86
     my_sudo rm -rf ${ISO_CUSTOM}/images/squashfs-root
 
@@ -225,15 +243,30 @@ modify_iso ()
     local install_sha256
     install_sha256=$(sha256sum ${ISO_CUSTOM}/images/install.img | cut -f 1 -d " ")
 
-    # Change permision for directory and file
-    my_sudo chmod 777 ${ISO_CUSTOM}
-    my_sudo chmod 666 ${ISO_CUSTOM}/.treeinfo
+    my_sudo chmod 664 ${ISO_CUSTOM}/.treeinfo
     # Copy for debug later
     cp ${ISO_CUSTOM}/.treeinfo ${ISO_TMP}
     sed -i "/^images\/install/c images/install.img = sha256:${install_sha256}" ${ISO_CUSTOM}/.treeinfo
 
+    my_sudo chmod 664 ${ISO_CUSTOM}/EFI/BOOT/BOOT.conf
+    my_sudo chmod 664 ${ISO_CUSTOM}/EFI/BOOT/grub.cfg
+    my_sudo chmod 664 ${ISO_CUSTOM}/isolinux/grub.conf
+    my_sudo chmod 664 ${ISO_CUSTOM}/isolinux/isolinux.cfg
+
+    info "Disable selinux."
+    # Disable selinux
+    sed -i "s/quiet/quiet selinux=0/g" ${ISO_CUSTOM}/EFI/BOOT/BOOT.conf
+    sed -i "s/quiet/quiet selinux=0/g" ${ISO_CUSTOM}/EFI/BOOT/grub.cfg
+    sed -i "s/quiet/quiet selinux=0/g" ${ISO_CUSTOM}/isolinux/grub.conf
+    sed -i "s/quiet/quiet selinux=0/g" ${ISO_CUSTOM}/isolinux/isolinux.cfg
+
+    # Boot from first option on CD
+    sed -i "s/=\"1\"/=\"0\"/g" ${ISO_CUSTOM}/EFI/BOOT/BOOT.conf
+    sed -i "s/=\"1\"/=\"0\"/g" ${ISO_CUSTOM}/EFI/BOOT/grub.cfg
+
     ################## Copy RPMs ##################
 
+    info "Copy RPMs."
     mkdir -p ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages
 
     for f in $(find ${RPM_DIR} -name \*x86_64.rpm)
@@ -256,6 +289,7 @@ modify_iso ()
         comps_param="-g ${REPO_COMPS_FILE##*/}"
     fi
 
+    info "Create RPM repo."
     my_sudo createrepo_c ${QUIET} ${comps_param} ${ISO_CUSTOM}/${NEW_REPO_NAME}
     my_sudo rm ${ISO_CUSTOM}/${NEW_REPO_NAME}/${REPO_COMPS_FILE##*/}
 
@@ -292,6 +326,7 @@ create_iso ()
         iso_label=CentOS-Stream-8-x86_64-dvd
     fi
 
+    info "Create ISO"
     xorrisofs ${VERBOSE} ${QUIET_X} -iso-level 3 \
        -o ${ISO_STORAGE}/${iso_name} \
        -R -J -V "${iso_label}" \
@@ -310,6 +345,7 @@ create_iso ()
 
 delete_tmp ()
 {
+    info "Clean ${ISO_CUSTOM} and ${ISO_TMP}"
     my_sudo rm -rf ${ISO_TMP}
     my_sudo rm -rf ${ISO_CUSTOM}
 }
@@ -341,6 +377,9 @@ do
             QUIET_S=""
             VERBOSE="-v"
             VERBOSE_R="-v --progress"
+        ;;
+        -i|--info)
+            SHOW_INFO="yes"
         ;;
         --distro)
             shift
