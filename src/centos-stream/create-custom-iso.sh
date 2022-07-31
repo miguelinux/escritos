@@ -36,9 +36,11 @@ die ()
 
 info ()
 {
+    local d
     if [ -n "${SHOW_INFO}" ]
     then
-        echo -e "${*}"
+        d=$(date +%H:%M:%S)
+        echo -e "$d: ${*}"
     fi
 }
 
@@ -187,7 +189,7 @@ copy_iso ()
 
     ISO_CUSTOM=$(mktemp -d ${ISO_DIR}/create-custom-iso.XXXXXX)
 
-    info "Copy ISO to ${ISO_CUSTOM}."
+    info "Copy ISO to ${ISO_CUSTOM}"
     my_sudo rsync -a ${VERBOSE_R} ${ISO_TMP}/${ISO_LOOP}p1/ ${ISO_CUSTOM} ${rsync_param}
 
     my_sudo umount /dev/${ISO_LOOP}p1
@@ -206,7 +208,7 @@ modify_iso ()
     my_sudo chown -R ${UID} ${ISO_CUSTOM}
     find ${ISO_CUSTOM} -type d -exec chmod 755 {} \;
 
-    info "Unsquash rootfs."
+    info "Unsquash rootfs"
     my_sudo unsquashfs ${QUIET_S} -dest ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img
 
     mkdir -p ${ISO_TMP}/rootfs
@@ -214,7 +216,7 @@ modify_iso ()
     my_sudo mount ${ISO_CUSTOM}/images/squashfs-root/LiveOS/rootfs.img ${ISO_TMP}/rootfs
 
     ################## Anaconda Hacks ##################
-    info "Applying anaconda hacks."
+    info "Applying anaconda hacks"
     for p in ${ANACONDA_FILES_DIR}/*.patch
     do
         if [ -f $p ]
@@ -235,7 +237,7 @@ modify_iso ()
 
     my_sudo umount ${ISO_TMP}/rootfs
     my_sudo rm -f ${ISO_CUSTOM}/images/install.img
-    info "Squash rootfs."
+    info "Squash rootfs"
     my_sudo mksquashfs ${ISO_CUSTOM}/images/squashfs-root ${ISO_CUSTOM}/images/install.img ${QUIET_S} -comp xz -Xbcj x86
     my_sudo rm -rf ${ISO_CUSTOM}/images/squashfs-root
 
@@ -253,12 +255,12 @@ modify_iso ()
     my_sudo chmod 664 ${ISO_CUSTOM}/isolinux/grub.conf
     my_sudo chmod 664 ${ISO_CUSTOM}/isolinux/isolinux.cfg
 
-    info "Disable selinux."
+    info "Disable selinux"
     # Disable selinux
-    sed -i "s/quiet/quiet selinux=0/g" ${ISO_CUSTOM}/EFI/BOOT/BOOT.conf
-    sed -i "s/quiet/quiet selinux=0/g" ${ISO_CUSTOM}/EFI/BOOT/grub.cfg
-    sed -i "s/quiet/quiet selinux=0/g" ${ISO_CUSTOM}/isolinux/grub.conf
-    sed -i "s/quiet/quiet selinux=0/g" ${ISO_CUSTOM}/isolinux/isolinux.cfg
+    sed -i "s/quiet/quiet inst.selinux=0/g" ${ISO_CUSTOM}/EFI/BOOT/BOOT.conf
+    sed -i "s/quiet/quiet inst.selinux=0/g" ${ISO_CUSTOM}/EFI/BOOT/grub.cfg
+    sed -i "s/quiet/quiet inst.selinux=0/g" ${ISO_CUSTOM}/isolinux/grub.conf
+    sed -i "s/quiet/quiet inst.selinux=0/g" ${ISO_CUSTOM}/isolinux/isolinux.cfg
 
     # Boot from first option on CD
     sed -i "s/=\"1\"/=\"0\"/g" ${ISO_CUSTOM}/EFI/BOOT/BOOT.conf
@@ -347,7 +349,7 @@ delete_tmp ()
 {
     info "Clean ${ISO_CUSTOM} and ${ISO_TMP}"
     my_sudo rm -rf ${ISO_TMP}
-    my_sudo rm -rf ${ISO_CUSTOM}
+    #my_sudo rm -rf ${ISO_CUSTOM}
 }
 
 #################################    main    #################################
