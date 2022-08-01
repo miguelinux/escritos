@@ -13,6 +13,7 @@ ANACONDA_FILES_DIR=/tmp/anaconda
 RPM_DIR=/tmp/rpms
 NEW_REPO_NAME=""
 REPO_COMPS_FILE=""
+MISSING_RPMS=""
 
 SILENT="--silent"
 QUIET="--quiet"
@@ -156,6 +157,14 @@ my_setup ()
             die "${REPO_COMPS_FILE}:  comps file not found"
         fi
     fi
+
+    if [ -n ${MISSING_RPMS} ]
+    then
+        if [ ! -e ${MISSING_RPMS} ]
+        then
+            die "${MISSING_RPMS}:  mising RPMs file not found"
+        fi
+    fi
 }
 
 copy_iso ()
@@ -283,6 +292,18 @@ modify_iso ()
     do
         my_cp $f ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages
     done
+
+    if [ -n ${MISSING_RPMS} ]
+        for f in $(< ${MISSING_RPMS})
+        do
+            if [ "#" = ${f:0:1} -o -z $f]
+                continue
+            fi
+            curl --fail ${SILENT} --location \
+                --output ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/${f##*/} \
+                ${f}
+        done
+    fi
 
     local comps_param=""
     if [ -n ${REPO_COMPS_FILE} ]
