@@ -308,7 +308,7 @@ modify_iso ()
     then
         for f in $(< ${ADD_MISSING_RPMS})
         do
-            if [ "#" = ${f:0:1} -o -z $f]
+            if [ "#" = ${f:0:1} -o -z $f ]
             then
                 continue
             fi
@@ -322,7 +322,7 @@ modify_iso ()
     then
         for f in $(< ${REMOVE_RPMS})
         do
-            if [ "#" = ${f:0:1} -o -z $f]
+            if [ "#" = ${f:0:1} -o -z $f ]
             then
                 continue
             fi
