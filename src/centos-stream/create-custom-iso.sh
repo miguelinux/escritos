@@ -4,6 +4,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+############################  config  ############################
 ISO_DISTRO=8-stream
 ISO_STORAGE=.
 ISO_DIR=/tmp/iso_dir
@@ -13,7 +14,9 @@ ANACONDA_FILES_DIR=/tmp/anaconda
 RPM_DIR=/tmp/rpms
 NEW_REPO_NAME=""
 REPO_COMPS_FILE=""
-MISSING_RPMS=""
+ADD_MISSING_RPMS=""
+REMOVE_RPMS=""
+############################  config end  ############################
 
 SILENT="--silent"
 QUIET="--quiet"
@@ -158,11 +161,19 @@ my_setup ()
         fi
     fi
 
-    if [ -n ${MISSING_RPMS} ]
+    if [ -n ${ADD_MISSING_RPMS} ]
     then
-        if [ ! -e ${MISSING_RPMS} ]
+        if [ ! -e ${ADD_MISSING_RPMS} ]
         then
-            die "${MISSING_RPMS}:  mising RPMs file not found"
+            die "${ADD_MISSING_RPMS}:  add mising RPMs file not found"
+        fi
+    fi
+
+    if [ -n ${REMOVE_RPMS} ]
+    then
+        if [ ! -e ${REMOVE_RPMS} ]
+        then
+            die "${REMOVE_RPMS}:  remove RPMs file not found"
         fi
     fi
 }
@@ -293,15 +304,29 @@ modify_iso ()
         my_cp $f ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages
     done
 
-    if [ -n ${MISSING_RPMS} ]
-        for f in $(< ${MISSING_RPMS})
+    if [ -n ${ADD_MISSING_RPMS} ]
+    then
+        for f in $(< ${ADD_MISSING_RPMS})
         do
             if [ "#" = ${f:0:1} -o -z $f]
+            then
                 continue
             fi
             curl --fail ${SILENT} --location \
                 --output ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/${f##*/} \
                 ${f}
+        done
+    fi
+
+    if [ -n ${REMOVE_RPMS} ]
+    then
+        for f in $(< ${REMOVE_RPMS})
+        do
+            if [ "#" = ${f:0:1} -o -z $f]
+            then
+                continue
+            fi
+            rm -f ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/${f}*
         done
     fi
 
