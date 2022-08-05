@@ -11,10 +11,10 @@ Signed-off-by: Jair Gonzalez <jair.de.jesus.gonzalez.plascencia@intel.com>
  .../ui/gui/spokes/installation_source.py      | 44 +++++++++++--------
  1 file changed, 25 insertions(+), 19 deletions(-)
 
-diff --git a/pyanaconda/ui/gui/spokes/installation_source.py b/pyanaconda/ui/gui/spokes/installation_source.py
+diff --git a/usr/lib64/python3.6/site-packages/pyanaconda/ui/gui/spokes/installation_source.py b/usr/lib64/python3.6/site-packages/pyanaconda/ui/gui/spokes/installation_source.py
 index d0d4da7..8260ef2 100644
---- a/pyanaconda/ui/gui/spokes/installation_source.py
-+++ b/pyanaconda/ui/gui/spokes/installation_source.py
+--- a/usr/lib64/python3.6/site-packages/pyanaconda/ui/gui/spokes/installation_source.py
++++ b/usr/lib64/python3.6/site-packages/pyanaconda/ui/gui/spokes/installation_source.py
 @@ -1686,27 +1686,33 @@ class SourceSpoke(NormalSpoke, GUISpokeInputCheckHandler, SourceSwitchHandler):
          :param repo_model_path: repo_model_path of what we can remove or None
          :type repo_model_path: repo_store repo_model_path
@@ -69,5 +69,5 @@ index d0d4da7..8260ef2 100644
      def on_resetRepos_clicked(self, button):
          """ Revert to the default list of repositories
 -- 
-2.18.4
+2.37.1
 
