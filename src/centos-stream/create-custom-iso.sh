@@ -31,6 +31,8 @@ ISO_CUSTOM=""
 ISO_TMP=""
 
 SHOW_HELP=0
+# Just a variable to delete all tmp files (used when developing)
+DELETE_TMP="yes"
 
 die ()
 {
@@ -393,9 +395,12 @@ create_iso ()
 
 delete_tmp ()
 {
-    info "Clean ${ISO_CUSTOM} and ${ISO_TMP}"
-    my_sudo rm -rf ${ISO_TMP}
-    #my_sudo rm -rf ${ISO_CUSTOM}
+    if [ -n "${DELETE_TMP}" ]
+    then
+        info "Clean ${ISO_CUSTOM} and ${ISO_TMP}"
+        my_sudo rm -rf ${ISO_TMP}
+        my_sudo rm -rf ${ISO_CUSTOM}
+    fi
 }
 
 #################################    main    #################################
