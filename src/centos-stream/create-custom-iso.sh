@@ -243,7 +243,7 @@ modify_iso ()
     do
         if [ -f $p ]
         then
-            my_sudo patch ${SILENT} -d ${ISO_TMP}/rootfs/usr/lib64/python3.6/site-packages -p1 < $p
+            my_sudo patch ${SILENT} -d ${ISO_TMP}/rootfs -p1 < $p
         fi
     done
 
