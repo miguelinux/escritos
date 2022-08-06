@@ -357,6 +357,19 @@ modify_iso ()
 
         sed -i "/variants/c variants = AppStream,BaseOS,${NEW_REPO_NAME}" ${ISO_CUSTOM}/.treeinfo
     fi
+
+    # Regreate the AppStream repo with out "modules"
+    info "Re-create AppStream repo."
+    cp ${ISO_CUSTOM}/AppStream/repodata/*comps*xml     ${ISO_CUSTOM}/AppStream/comps-AppStream.x86_64.xml
+    #cp ${ISO_CUSTOM}/AppStream/repodata/*modules*yaml* ${ISO_TMP}/modules.yaml.gz
+
+    #chmod 644 ${ISO_TMP}/modules.yaml.gz
+    #gunzip ${ISO_TMP}/modules.yaml.gz
+
+    rm -rf ${ISO_CUSTOM}/AppStream/repodata
+
+    createrepo_c  -g comps-AppStream.x86_64.xml ${ISO_CUSTOM}/AppStream
+    rm ${ISO_CUSTOM}/AppStream/comps-AppStream.x86_64.xml
 }
 
 create_iso ()
@@ -378,6 +391,7 @@ create_iso ()
 
     info "Create ISO"
     rm -f ${ISO_STORAGE}/${iso_name}
+
     xorrisofs ${VERBOSE} ${QUIET_X} -iso-level 3 \
        -o ${ISO_STORAGE}/${iso_name} \
        -R -J -V "${iso_label}" \
