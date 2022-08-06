@@ -314,9 +314,12 @@ modify_iso ()
             then
                 continue
             fi
-            curl --fail ${SILENT} --location \
-                --output ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/${f##*/} \
-                ${f}
+            if ! curl --fail ${SILENT} --location \
+                    --output ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/${f##*/} \
+                    ${f}
+            then
+                die "Could not download ${f##*/}"
+            fi
         done
     fi
 
@@ -339,6 +342,8 @@ modify_iso ()
         comps_param="-g ${REPO_COMPS_FILE##*/}"
     fi
 
+    ################## Create new repo ##################
+
     info "Create RPM repo."
     my_sudo createrepo_c ${QUIET} ${comps_param} ${ISO_CUSTOM}/${NEW_REPO_NAME}
     my_sudo rm ${ISO_CUSTOM}/${NEW_REPO_NAME}/${REPO_COMPS_FILE##*/}
@@ -358,6 +363,8 @@ modify_iso ()
         sed -i "/variants/c variants = AppStream,BaseOS,${NEW_REPO_NAME}" ${ISO_CUSTOM}/.treeinfo
     fi
 
+    ################## Regenerate AppStream ##################
+
     # Regreate the AppStream repo with out "modules"
     info "Re-create AppStream repo."
     cp ${ISO_CUSTOM}/AppStream/repodata/*comps*xml     ${ISO_CUSTOM}/AppStream/comps-AppStream.x86_64.xml
@@ -368,8 +375,8 @@ modify_iso ()
 
     rm -rf ${ISO_CUSTOM}/AppStream/repodata
 
-    createrepo_c  -g comps-AppStream.x86_64.xml ${ISO_CUSTOM}/AppStream
-    rm ${ISO_CUSTOM}/AppStream/comps-AppStream.x86_64.xml
+    createrepo_c ${QUIET} -g comps-AppStream.x86_64.xml ${ISO_CUSTOM}/AppStream
+    rm -f ${ISO_CUSTOM}/AppStream/comps-AppStream.x86_64.xml
 }
 
 create_iso ()
