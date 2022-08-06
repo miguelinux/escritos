@@ -377,6 +377,7 @@ create_iso ()
     fi
 
     info "Create ISO"
+    rm -f ${ISO_STORAGE}/${iso_name}
     xorrisofs ${VERBOSE} ${QUIET_X} -iso-level 3 \
        -o ${ISO_STORAGE}/${iso_name} \
        -R -J -V "${iso_label}" \
@@ -400,6 +401,8 @@ delete_tmp ()
         info "Clean ${ISO_CUSTOM} and ${ISO_TMP}"
         my_sudo rm -rf ${ISO_TMP}
         my_sudo rm -rf ${ISO_CUSTOM}
+    else
+        info "Keeping tmp direcies: ${ISO_CUSTOM} and ${ISO_TMP}"
     fi
 }
 
