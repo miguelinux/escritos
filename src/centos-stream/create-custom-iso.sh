@@ -33,6 +33,7 @@ ISO_TMP=""
 SHOW_HELP=0
 # Just a variable to delete all tmp files (used when developing)
 DELETE_TMP="yes"
+REGEN_APPSTREAM="yes"
 
 die ()
 {
@@ -218,6 +219,65 @@ copy_iso ()
     my_sudo losetup -d /dev/${ISO_LOOP}
 }
 
+regenerate_appstream_hack ()
+{
+    # Regreate the AppStream repo
+
+    info "Re-create AppStream repo."
+
+    chmod 664 ${ISO_CUSTOM}/AppStream/repodata/*
+    modifyrepo_c --remove modules ${ISO_CUSTOM}/AppStream/repodata
+
+    return
+
+    echo "No sale"
+
+    chmod 664 ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/*
+    chmod 664 ${ISO_CUSTOM}/AppStream/Packages/*
+
+    rm -f ${ISO_CUSTOM}/AppStream/Packages/libvirt*
+    rm -f ${ISO_CUSTOM}/AppStream/Packages/python3-libvirt*
+    rm -f ${ISO_CUSTOM}/AppStream/Packages/qemu*
+
+    mv ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/libvirt* ${ISO_CUSTOM}/AppStream/Packages/
+    mv ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/qemu*    ${ISO_CUSTOM}/AppStream/Packages/
+
+    cp ${ISO_CUSTOM}/AppStream/repodata/*comps*xml     ${ISO_CUSTOM}/AppStream/comps-AppStream.x86_64.xml
+    cp ${ISO_CUSTOM}/AppStream/repodata/*modules*yaml* ${ISO_TMP}/modules.yaml.gz
+
+    chmod 644 ${ISO_TMP}/modules.yaml.gz
+    gunzip ${ISO_TMP}/modules.yaml.gz
+
+    rm -f ${ISO_TMP}/libvirt.list
+    rm -f ${ISO_TMP}/qemu.list
+
+    for f in ${ISO_CUSTOM}/AppStream/Packages/libvirt*
+    do
+        echo "    - ${f##*/}" >> ${ISO_TMP}/libvirt.list
+    done
+
+    for f in ${ISO_CUSTOM}/AppStream/Packages/qemu*
+    do
+        echo "    - ${f##*/}" >> ${ISO_TMP}/qemu.list
+    done
+
+    sed -i "/libvirt.*src/d"      ${ISO_TMP}/modules.yaml
+    sed -i "/^    - libvirt-.*/d" ${ISO_TMP}/modules.yaml
+    sed -i "/python3-libvirt.*/d" ${ISO_TMP}/modules.yaml
+    sed -i "/libtpms-devel-.*/r ${ISO_TMP}/libvirt.list" ${ISO_TMP}/modules.yaml
+
+    sed -i "/- qemu-.*src/d"    ${ISO_TMP}/modules.yaml
+    sed -i "/- qemu-.*x86_64/d" ${ISO_TMP}/modules.yaml
+    sed -i "/python3-libnbd-debuginfo.*/r ${ISO_TMP}/qemu.list" ${ISO_TMP}/modules.yaml
+
+    rm -rf ${ISO_CUSTOM}/AppStream/repodata
+
+    createrepo_c ${QUIET} -g comps-AppStream.x86_64.xml ${ISO_CUSTOM}/AppStream
+    rm -f ${ISO_CUSTOM}/AppStream/comps-AppStream.x86_64.xml
+
+    modifyrepo_c --mdtype=modules ${ISO_TMP}/modules.yaml ${ISO_CUSTOM}/AppStream/repodata
+}
+
 modify_iso ()
 {
     if [ ! -f ${ISO_CUSTOM}/images/install.img ]
@@ -335,6 +395,17 @@ modify_iso ()
         done
     fi
 
+    ################## Regenerate AppStream ##################
+
+    if [ "yes" = "${REGEN_APPSTREAM}" ]
+    then
+        regenerate_appstream_hack
+    fi
+
+    ################## Create new repo ##################
+
+    info "Create ${NEW_REPO_NAME} RPM repo."
+
     local comps_param=""
     if [ -n ${REPO_COMPS_FILE} ]
     then
@@ -342,9 +413,6 @@ modify_iso ()
         comps_param="-g ${REPO_COMPS_FILE##*/}"
     fi
 
-    ################## Create new repo ##################
-
-    info "Create RPM repo."
     my_sudo createrepo_c ${QUIET} ${comps_param} ${ISO_CUSTOM}/${NEW_REPO_NAME}
     my_sudo rm ${ISO_CUSTOM}/${NEW_REPO_NAME}/${REPO_COMPS_FILE##*/}
 
@@ -362,21 +430,6 @@ modify_iso ()
 
         sed -i "/variants/c variants = AppStream,BaseOS,${NEW_REPO_NAME}" ${ISO_CUSTOM}/.treeinfo
     fi
-
-    ################## Regenerate AppStream ##################
-
-    # Regreate the AppStream repo with out "modules"
-    info "Re-create AppStream repo."
-    cp ${ISO_CUSTOM}/AppStream/repodata/*comps*xml     ${ISO_CUSTOM}/AppStream/comps-AppStream.x86_64.xml
-    #cp ${ISO_CUSTOM}/AppStream/repodata/*modules*yaml* ${ISO_TMP}/modules.yaml.gz
-
-    #chmod 644 ${ISO_TMP}/modules.yaml.gz
-    #gunzip ${ISO_TMP}/modules.yaml.gz
-
-    rm -rf ${ISO_CUSTOM}/AppStream/repodata
-
-    createrepo_c ${QUIET} -g comps-AppStream.x86_64.xml ${ISO_CUSTOM}/AppStream
-    rm -f ${ISO_CUSTOM}/AppStream/comps-AppStream.x86_64.xml
 }
 
 create_iso ()
