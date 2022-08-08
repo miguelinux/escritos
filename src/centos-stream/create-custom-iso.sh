@@ -225,19 +225,30 @@ regenerate_appstream_hack ()
 
     info "Re-create AppStream repo."
 
-    chmod 664 ${ISO_CUSTOM}/AppStream/repodata/*
-    modifyrepo_c --remove modules ${ISO_CUSTOM}/AppStream/repodata
-
-    return
-
-    echo "No sale"
-
     chmod 664 ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/*
     chmod 664 ${ISO_CUSTOM}/AppStream/Packages/*
 
-    rm -f ${ISO_CUSTOM}/AppStream/Packages/libvirt*
-    rm -f ${ISO_CUSTOM}/AppStream/Packages/python3-libvirt*
+    for f in libvirt-8 libvirt-client libvirt-daemon libvirt-debug \
+                libvirt-devel libvirt-docs libvirt-libs libvirt-lock \
+                libvirt-nss libvirt-wireshark
+    do
+        rm -f ${ISO_CUSTOM}/AppStream/Packages/${f}*
+    done
+
     rm -f ${ISO_CUSTOM}/AppStream/Packages/qemu*
+
+    rm -f ${ISO_TMP}/libvirt.list
+    rm -f ${ISO_TMP}/qemu.list
+
+    for f in ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/libvirt*
+    do
+        echo "    - ${f##*/}" >> ${ISO_TMP}/libvirt.list
+    done
+
+    for f in ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/qemu*
+    do
+        echo "    - ${f##*/}" >> ${ISO_TMP}/qemu.list
+    done
 
     mv ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/libvirt* ${ISO_CUSTOM}/AppStream/Packages/
     mv ${ISO_CUSTOM}/${NEW_REPO_NAME}/Packages/qemu*    ${ISO_CUSTOM}/AppStream/Packages/
@@ -248,27 +259,26 @@ regenerate_appstream_hack ()
     chmod 644 ${ISO_TMP}/modules.yaml.gz
     gunzip ${ISO_TMP}/modules.yaml.gz
 
-    rm -f ${ISO_TMP}/libvirt.list
-    rm -f ${ISO_TMP}/qemu.list
-
-    for f in ${ISO_CUSTOM}/AppStream/Packages/libvirt*
-    do
-        echo "    - ${f##*/}" >> ${ISO_TMP}/libvirt.list
-    done
-
-    for f in ${ISO_CUSTOM}/AppStream/Packages/qemu*
-    do
-        echo "    - ${f##*/}" >> ${ISO_TMP}/qemu.list
-    done
-
-    sed -i "/libvirt.*src/d"      ${ISO_TMP}/modules.yaml
-    sed -i "/^    - libvirt-.*/d" ${ISO_TMP}/modules.yaml
-    sed -i "/python3-libvirt.*/d" ${ISO_TMP}/modules.yaml
+    #sed -i "/libvirt.*src/d"      ${ISO_TMP}/modules.yaml
+    sed -i "/^    - libvirt-0/d" ${ISO_TMP}/modules.yaml
+    sed -i "/^    - libvirt-client/d" ${ISO_TMP}/modules.yaml
+    sed -i "/^    - libvirt-daemon/d" ${ISO_TMP}/modules.yaml
+    sed -i "/^    - libvirt-debug/d" ${ISO_TMP}/modules.yaml
+    sed -i "/^    - libvirt-devel/d" ${ISO_TMP}/modules.yaml
+    sed -i "/^    - libvirt-docs/d" ${ISO_TMP}/modules.yaml
+    sed -i "/^    - libvirt-libs/d" ${ISO_TMP}/modules.yaml
+    sed -i "/^    - libvirt-lock/d" ${ISO_TMP}/modules.yaml
+    sed -i "/^    - libvirt-nss/d" ${ISO_TMP}/modules.yaml
+    sed -i "/^    - libvirt-wireshark/d" ${ISO_TMP}/modules.yaml
+    #sed -i "/python3-libvirt.*/d" ${ISO_TMP}/modules.yaml
     sed -i "/libtpms-devel-.*/r ${ISO_TMP}/libvirt.list" ${ISO_TMP}/modules.yaml
 
     sed -i "/- qemu-.*src/d"    ${ISO_TMP}/modules.yaml
     sed -i "/- qemu-.*x86_64/d" ${ISO_TMP}/modules.yaml
     sed -i "/python3-libnbd-debuginfo.*/r ${ISO_TMP}/qemu.list" ${ISO_TMP}/modules.yaml
+
+    # drop the following due to an errror
+    sed -i "/- qemu-img-debuginfo.*x86_64/d" ${ISO_TMP}/modules.yaml
 
     rm -rf ${ISO_CUSTOM}/AppStream/repodata
 
