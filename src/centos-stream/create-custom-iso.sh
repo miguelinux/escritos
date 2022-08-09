@@ -277,8 +277,9 @@ regenerate_appstream_hack ()
     sed -i "/- qemu-.*x86_64/d" ${ISO_TMP}/modules.yaml
     sed -i "/python3-libnbd-debuginfo.*/r ${ISO_TMP}/qemu.list" ${ISO_TMP}/modules.yaml
 
-    # drop the following due to an errror
+    # drop the following due to a Module yaml error: was not a valid N-E:V-R.A format
     sed -i "/- qemu-img-debuginfo.*x86_64/d" ${ISO_TMP}/modules.yaml
+    sed -i "/- libvirt-daemon-driver-storage-gluster-debuginfo.*x86_64/d" ${ISO_TMP}/modules.yaml
 
     rm -rf ${ISO_CUSTOM}/AppStream/repodata
 
