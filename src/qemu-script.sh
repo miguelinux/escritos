@@ -87,6 +87,10 @@ my_setup ()
         then
             mkdir -p ${VM_OVMF_CODE%/*}
             cp /usr/share/edk2/ovmf/OVMF_CODE.cc.fd ${VM_OVMF_CODE}
+        elif [ -f /usr/share/OVMF/OVMF_CODE.fd ]
+        then
+            mkdir -p ${VM_OVMF_CODE%/*}
+            cp /usr/share/OVMF/OVMF_CODE.fd ${VM_OVMF_CODE}
         else
             die "Can not find OVMF_CODE.fd file"
         fi
@@ -102,6 +106,10 @@ my_setup ()
         then
             mkdir -p ${VM_OVMF_VARS%/*}
             cp /usr/share/edk2/ovmf/OVMF_VARS.fd ${VM_OVMF_VARS}
+        elif [ -f /usr/share/OVMF/OVMF_VARS.fd ]
+        then
+            mkdir -p ${VM_OVMF_VARS%/*}
+            cp /usr/share/OVMF/OVMF_VARS.fd ${VM_OVMF_VARS}
         else
             die "Can not find OVMF_VARS.fd file"
         fi
