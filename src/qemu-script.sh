@@ -26,6 +26,7 @@ VM_BOOT_ISO=1                                             # VM ISO 1 bootindex
 VM_NETDEV=user                                            # user|tap
 VM_TAP=""                                                 # Network tap device name
 VM_BRIDGE=""                                              # Network bridge name
+VM_NET_USER_HOSTFWD=",hostfwd=tcp::10022-:22"             # Host forwarding
 VM_NETDEV_EXTRA=""                                        # Extra config filled in my_setup
 VM_MACADDRESS=52:54:00:a1:b2:c3                           #
 VM_OVMF_CODE=${HOME}/.local/share/qemu/OVMF_CODE.fd
@@ -123,7 +124,10 @@ my_setup ()
     else
         # Ensure we use user netdev
         VM_NETDEV=user
-        VM_NETDEV_EXTRA=""
+        if test -n "${VM_NET_USER_HOSTFWD}"
+        then
+            VM_NETDEV_EXTRA="${VM_NETDEV_EXTRA}${VM_NET_USER_HOSTFWD}"
+        fi
     fi
 
     # Create cache dir if not exist
