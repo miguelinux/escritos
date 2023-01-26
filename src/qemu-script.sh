@@ -31,6 +31,8 @@ VM_NETDEV_EXTRA=""                                        # Extra config filled 
 VM_MACADDRESS=52:54:00:a1:b2:c3                           #
 VM_OVMF_CODE=${HOME}/.local/share/qemu/OVMF_CODE.fd
 VM_OVMF_VARS=${HOME}/.local/share/qemu/OVMF_VARS-${VM_NAME}.fd
+VM_SPICE_PORT=5924                                        # spice port
+VM_SPICE_EXTRA=",disable-ticketing=on"                    # spice extra args
 EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
 ##################  end default config  ###################
 
@@ -267,7 +269,7 @@ run_qemu ()
         -drive file=${VM_OVMF_VARS},if=pflash,format=raw,unit=1         \
         -drive file=${VM_IMG_1},format=${VM_IMG_FMT_1},cache=${VM_IMG_CACHE_1},if=none,index=0,aio=native,cache.direct=on,id=disk0 \
         ${VM_EXTRA_BLOCKS}                                              \
-        -spice port=5924,disable-ticketing=on                           \
+        -spice port=${VM_SPICE_PORT}${VM_SPICE_EXTRA}                   \
         -device qxl-vga                                                 \
         -device virtio-serial                                           \
         -netdev ${VM_NETDEV},id=mynet0${VM_NETDEV_EXTRA}                \
