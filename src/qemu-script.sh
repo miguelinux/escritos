@@ -6,12 +6,13 @@
 
 ##################  start default config  ##################
 VM_NAME=vm001
-VM_DEV_NET="virtio-net-pci"                               # VM type NIC 
-VM_MONITOR="" #${HOME}/.cache/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
+VM_DEV_NET="virtio-net-pci"                               # VM type NIC
+VM_MONITOR="" #"${HOME}/.cache/qemu/${VM_NAME}-vm-monitor.sock" # Monitor unix socket
 VM_MEM=2048                                               # VM RAM
 VM_CPU=host                                               # CPU type
 VM_SMP="cpus=4,cores=2,threads=2,sockets=1"               # SMP
-VM_SERIAL=none                                            # VM Serial 
+VM_SERIAL=none                                            # VM Serial
+VM_RTC_WIN="" #"-rtc base=localtime"  # if OS is windows set to localtime
 VM_IMG_1=""                                               # VM Image 1
 VM_IMG_FMT_1=qcow2       # raw|qcow2|luks|vmdk|vpc|VHDX
 VM_IMG_CACHE_1=writeback # writethrough|writeback(Default)|none|directsync|unsafe
@@ -259,7 +260,7 @@ run_qemu ()
         -enable-kvm                                                     \
         -smp ${VM_SMP}                                                  \
         -m ${VM_MEM}                                                    \
-        -rtc base=localtime                                             \
+        ${VM_RTC_WIN}                                                   \
         -monitor unix:${VM_MONITOR},server,nowait                       \
         -serial ${VM_SERIAL}                                            \
         -parallel none                                                  \
