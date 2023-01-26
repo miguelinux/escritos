@@ -109,6 +109,10 @@ my_setup ()
         then
             mkdir -p ${VM_OVMF_VARS%/*}
             cp /usr/share/edk2/ovmf/OVMF_VARS.fd ${VM_OVMF_VARS}
+        elif [ -f /usr/share/edk2/ovmf/OVMF_VARS.secboot.fd ]
+        then
+            mkdir -p ${VM_OVMF_VARS%/*}
+            cp /usr/share/edk2/ovmf/OVMF_VARS.secboot.fd ${VM_OVMF_VARS}
         elif [ -f /usr/share/OVMF/OVMF_VARS.fd ]
         then
             mkdir -p ${VM_OVMF_VARS%/*}
