@@ -1,0 +1,52 @@
+#!/bin/bash
+# download cirros image and boot it.
+MEM=${MEM:-64}
+HOSTARCH="${HOSTARCH:-x86_64}"
+GUESTARCH="${GUESTARCH:-${HOSTARCH}}"
+
+
+ver="0.4.0"
+img_url="http://download.cirros-cloud.net/$ver/cirros-$ver-$GUESTARCH-disk.img"
+img_dist=${1:-${img_url##*/}}
+if [ ! -f "$img_dist" ]; then
+   wget "$img_url" -O "$img_dist.tmp" &&
+      mv "$img_dist.tmp" "$img_dist"
+fi
+
+echo "$HOSTARCH/$GUESTARCH/$MEM [$img_dist]"
+
+echo '{"instance-id": "9068aef2-213e-4e43-830f-accdbadde897"}' > meta-data
+#{ echo '#!/bin/sh'; echo 'poweroff'; } > user-data
+{ echo '#!/bin/sh'; echo 'echo poweroff'; } > user-data
+
+cloud-localds seed.img user-data meta-data
+
+qemu-img create -f qcow2 -b "$img_dist" disk1.img >/dev/null 2>&1
+
+smbios=(
+    -smbios "type=1,family=${family}"
+    -smbios "type=0,vendor=0vendor,version=0version,date=0date,release=0.0,uefi=
+on"
+    -smbios "type=1,manufacturer=t1manufacturer,product=t1product,version=t1vers
+ion,serial=t1serial,uuid=11111111-1111-1111-1111-111111111111,sku=t1sku,family=t
+1family"
+    -smbios "type=2,manufacturer=t2manufacturer,product=t2product,version=t2vers
+ion,serial=t2serial,asset=t2asset,location=t2location"
+    -smbios "type=3,manufacturer=t3manufacturer,version=t3version,serial=t3seria
+l,asset=t3asset,sku=t3sku"
+    -smbios "type=4,sock_pfx=t4sock_pfx,manufacturer=t4manufacturer,version=t4ve
+rsion,serial=t4serial,asset=t4asset,part=t4part"
+    # https://bugs.launchpad.net/cloud-init/+bug/1753558
+    -smbios "type=11,value=Hello,value=World"
+    -smbios "type=17,loc_pfx=t17loc_pfx,bank=t17bank,manufacturer=t17manufacture
+r,serial=t17serial,asset=t17asset,part=17part,speed=17"
+
+)
+
+qemu-system-$HOSTARCH -m $MEM \
+   -device virtio-net-pci,netdev=net00 \
+   -netdev type=user,id=net00,net=10.0.12.0/24,host=10.0.12.2 \
+   -drive if=virtio,file=disk1.img \
+   -drive if=virtio,file=seed.img \
+   "${smbios[@]}" \
+   -nographic
