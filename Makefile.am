@@ -1,1 +1,1 @@
-dist_bin_SCRIPTS = src/qemu-script.sh
+dist_bin_SCRIPTS = src/qemu/qemu-script.sh
