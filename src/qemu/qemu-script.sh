@@ -297,11 +297,16 @@ run_qemu ()
 }
 
 ############################### main ###############################
-
+#
+if [ -e /etc/qemu-scripts/${0##*/}.conf ]
+then
+    source /etc/qemu-scripts/${0##*/}.conf
+fi
 if [ -e ${HOME}/.config/qemu-scripts/${0##*/}.conf ]
 then
     source ${HOME}/.config/qemu-scripts/${0##*/}.conf
 fi
+
 parse_args $@
 is_running
 my_setup
