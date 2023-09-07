@@ -297,7 +297,7 @@ run_qemu ()
         -object memory-backend-file,id=cxl-lsa1,share=on,mem-path=/tmp/lsa.raw,size=256M \
         -device pxb-cxl,bus_nr=12,bus=pcie.0,id=cxl.1 \
         -device cxl-rp,port=0,bus=cxl.1,id=root_port13,chassis=0,slot=2 \
-        -device cxl-type3,bus=root_port13,persistent-memdev=cxl-mem1,lsa=cxl-lsa1,id=cxl-pmem0 \
+        -device cxl-type3,bus=root_port13,memdev=cxl-mem1,lsa=cxl-lsa1,id=cxl-pmem0 \
         -M cxl-fmw.0.targets.0=cxl.1,cxl-fmw.0.size=4G \
         ${EXTRA_QEMU_ARGS}
 }
