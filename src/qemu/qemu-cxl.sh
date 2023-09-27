@@ -256,7 +256,7 @@ run_qemu ()
         ${QEMU_DAEMONIZE}                                               \
         -name ${VM_NAME}                                                \
         -cpu  ${VM_CPU}                                                 \
-        -machine type=q35,accel=kvm,usb=on,cxl=on             \
+        -machine type=q35,accel=kvm,usb=on,nvdimm=on,cxl=on             \
         -enable-kvm                                                     \
         -smp ${VM_SMP}                                                  \
         -m ${VM_MEM}                                                    \
@@ -293,13 +293,73 @@ run_qemu ()
         -device usb-redir,chardev=usbredirchardev3,id=usbredirdev3      \
         -global ICH9-LPC.disable_s3=1                                   \
         -global ICH9-LPC.disable_s4=1                                   \
-        -object memory-backend-file,id=cxl-mem1,share=on,mem-path=/tmp/cxltest.raw,size=256M \
-        -object memory-backend-file,id=cxl-lsa1,share=on,mem-path=/tmp/lsa.raw,size=256M \
-        -device pxb-cxl,bus_nr=12,bus=pcie.0,id=cxl.1 \
-        -device cxl-rp,port=0,bus=cxl.1,id=root_port13,chassis=0,slot=2 \
-        -device cxl-type3,bus=root_port13,memdev=cxl-mem1,lsa=cxl-lsa1,id=cxl-pmem0 \
-        -M cxl-fmw.0.targets.0=cxl.1,cxl-fmw.0.size=4G \
+        -debugcon file:/tmp/uefi_debug.log                              \
+        -global isa-debugcon.iobase=0x402                               \
+        -object memory-backend-file,id=cxl-mem0,share=on,mem-path=/tmp/cxltest0.raw,size=256M \
+        -object memory-backend-file,id=cxl-mem1,share=on,mem-path=/tmp/cxltest1.raw,size=256M \
+        -object memory-backend-file,id=cxl-mem2,share=on,mem-path=/tmp/cxltest2.raw,size=256M \
+        -object memory-backend-file,id=cxl-mem3,share=on,mem-path=/tmp/cxltest3.raw,size=256M \
+        -object memory-backend-file,id=cxl-lsa0,share=on,mem-path=/tmp/lsa0.raw,size=1K \
+        -object memory-backend-file,id=cxl-lsa1,share=on,mem-path=/tmp/lsa1.raw,size=1K \
+        -object memory-backend-file,id=cxl-lsa2,share=on,mem-path=/tmp/lsa2.raw,size=1K \
+        -object memory-backend-file,id=cxl-lsa3,share=on,mem-path=/tmp/lsa3.raw,size=1K \
+        -device pxb-cxl,id=cxl.0,bus=pcie.0,bus_nr=53 \
+        -device pxb-cxl,id=cxl.1,bus=pcie.0,bus_nr=191 \
+        -device cxl-rp,id=hb0rp0,bus=cxl.0,chassis=0,slot=0,port=0 \
+        -device cxl-rp,id=hb0rp1,bus=cxl.0,chassis=0,slot=1,port=1 \
+        -device cxl-rp,id=hb1rp0,bus=cxl.1,chassis=0,slot=2,port=0 \
+        -device cxl-rp,id=hb1rp1,bus=cxl.1,chassis=0,slot=3,port=1 \
+        -device cxl-type3,bus=hb0rp0,memdev=cxl-mem0,id=cxl-dev0,lsa=cxl-lsa0 \
+        -device cxl-type3,bus=hb0rp1,memdev=cxl-mem1,id=cxl-dev1,lsa=cxl-lsa1 \
+        -device cxl-type3,bus=hb1rp0,memdev=cxl-mem2,id=cxl-dev2,lsa=cxl-lsa2 \
+        -device cxl-type3,bus=hb1rp1,memdev=cxl-mem3,id=cxl-dev3,lsa=cxl-lsa3 \
+        -M cxl-fmw.0.targets.0=cxl.0,cxl-fmw.0.size=4G,cxl-fmw.0.interleave-granularity=8k,cxl-fmw.1.targets.0=cxl.0,cxl-fmw.1.targets.1=cxl.1,cxl-fmw.1.size=4G,cxl-fmw.1.interleave-granularity=8k \
+        -snapshot \
+        -object memory-backend-ram,id=mem0,size=2048M        \
+        -numa node,nodeid=0,memdev=mem0,        \
+        -numa cpu,node-id=0,socket-id=0        \
+        -object memory-backend-ram,id=mem1,size=2048M        \
+        -numa node,nodeid=1,memdev=mem1,        \
+        -numa cpu,node-id=1,socket-id=1        \
+        -object memory-backend-ram,id=mem2,size=2048M        \
+        -numa node,nodeid=2,memdev=mem2,        \
+        -object memory-backend-ram,id=mem3,size=2048M        \
+        -numa node,nodeid=3,memdev=mem3,        \
+        -numa node,nodeid=4,        \
+        -object memory-backend-file,id=nvmem0,share=on,mem-path=nvdimm-0,size=16384M,align=1G        \
+        -device nvdimm,memdev=nvmem0,id=nv0,label-size=2M,node=4        \
+        -numa node,nodeid=5,        \
+        -object memory-backend-file,id=nvmem1,share=on,mem-path=nvdimm-1,size=16384M,align=1G        \
+        -device nvdimm,memdev=nvmem1,id=nv1,label-size=2M,node=5        \
+        -numa dist,src=0,dst=0,val=10        \
+        -numa dist,src=0,dst=1,val=21        \
+        -numa dist,src=0,dst=2,val=12        \
+        -numa dist,src=0,dst=3,val=21        \
+        -numa dist,src=0,dst=4,val=17        \
+        -numa dist,src=0,dst=5,val=28        \
+        -numa dist,src=1,dst=1,val=10        \
+        -numa dist,src=1,dst=2,val=21        \
+        -numa dist,src=1,dst=3,val=12        \
+        -numa dist,src=1,dst=4,val=28        \
+        -numa dist,src=1,dst=5,val=17        \
+        -numa dist,src=2,dst=2,val=10        \
+        -numa dist,src=2,dst=3,val=21        \
+        -numa dist,src=2,dst=4,val=28        \
+        -numa dist,src=2,dst=5,val=28        \
+        -numa dist,src=3,dst=3,val=10        \
+        -numa dist,src=3,dst=4,val=28        \
+        -numa dist,src=3,dst=5,val=28        \
+        -numa dist,src=4,dst=4,val=10        \
+        -numa dist,src=4,dst=5,val=28        \
+        -numa dist,src=5,dst=5,val=10        \
         ${EXTRA_QEMU_ARGS}
+
+#        -object memory-backend-file,id=cxl-mem1,share=on,mem-path=/tmp/cxltest.raw,size=256M \
+#        -object memory-backend-file,id=cxl-lsa1,share=on,mem-path=/tmp/lsa.raw,size=256M \
+#        -device pxb-cxl,bus_nr=12,bus=pcie.0,id=cxl.1 \
+#        -device cxl-rp,port=0,bus=cxl.1,id=root_port13,chassis=0,slot=2 \
+#        -device cxl-type3,bus=root_port13,memdev=cxl-mem1,lsa=cxl-lsa1,id=cxl-pmem0 \
+#        -M cxl-fmw.0.targets.0=cxl.1,cxl-fmw.0.size=4G \
 }
 
 ############################### main ###############################
