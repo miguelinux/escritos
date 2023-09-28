@@ -34,6 +34,7 @@ VM_OVMF_CODE=${HOME}/.local/share/qemu/OVMF_CODE.fd
 VM_OVMF_VARS=${HOME}/.local/share/qemu/OVMF_VARS-${VM_NAME}.fd
 VM_SPICE_PORT=5924                                        # spice port
 VM_SPICE_EXTRA=",disable-ticketing=on"                    # spice extra args
+VM_PMEM_DIR=/tmp                                          # CXL, NVMDIMM files
 EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
 ##################  end default config  ###################
 
@@ -295,14 +296,14 @@ run_qemu ()
         -global ICH9-LPC.disable_s4=1                                   \
         -debugcon file:/tmp/uefi_debug.log                              \
         -global isa-debugcon.iobase=0x402                               \
-        -object memory-backend-file,id=cxl-mem0,share=on,mem-path=/tmp/cxltest0.raw,size=256M \
-        -object memory-backend-file,id=cxl-mem1,share=on,mem-path=/tmp/cxltest1.raw,size=256M \
-        -object memory-backend-file,id=cxl-mem2,share=on,mem-path=/tmp/cxltest2.raw,size=256M \
-        -object memory-backend-file,id=cxl-mem3,share=on,mem-path=/tmp/cxltest3.raw,size=256M \
-        -object memory-backend-file,id=cxl-lsa0,share=on,mem-path=/tmp/lsa0.raw,size=1K \
-        -object memory-backend-file,id=cxl-lsa1,share=on,mem-path=/tmp/lsa1.raw,size=1K \
-        -object memory-backend-file,id=cxl-lsa2,share=on,mem-path=/tmp/lsa2.raw,size=1K \
-        -object memory-backend-file,id=cxl-lsa3,share=on,mem-path=/tmp/lsa3.raw,size=1K \
+        -object memory-backend-file,id=cxl-mem0,share=on,mem-path=${VM_PMEM_DIR}/cxltest0.raw,size=256M \
+        -object memory-backend-file,id=cxl-mem1,share=on,mem-path=${VM_PMEM_DIR}/cxltest1.raw,size=256M \
+        -object memory-backend-file,id=cxl-mem2,share=on,mem-path=${VM_PMEM_DIR}/cxltest2.raw,size=256M \
+        -object memory-backend-file,id=cxl-mem3,share=on,mem-path=${VM_PMEM_DIR}/cxltest3.raw,size=256M \
+        -object memory-backend-file,id=cxl-lsa0,share=on,mem-path=${VM_PMEM_DIR}/lsa0.raw,size=1K \
+        -object memory-backend-file,id=cxl-lsa1,share=on,mem-path=${VM_PMEM_DIR}/lsa1.raw,size=1K \
+        -object memory-backend-file,id=cxl-lsa2,share=on,mem-path=${VM_PMEM_DIR}/lsa2.raw,size=1K \
+        -object memory-backend-file,id=cxl-lsa3,share=on,mem-path=${VM_PMEM_DIR}/lsa3.raw,size=1K \
         -device pxb-cxl,id=cxl.0,bus=pcie.0,bus_nr=53 \
         -device pxb-cxl,id=cxl.1,bus=pcie.0,bus_nr=191 \
         -device cxl-rp,id=hb0rp0,bus=cxl.0,chassis=0,slot=0,port=0 \
@@ -326,10 +327,10 @@ run_qemu ()
         -object memory-backend-ram,id=mem3,size=2048M        \
         -numa node,nodeid=3,memdev=mem3,        \
         -numa node,nodeid=4,        \
-        -object memory-backend-file,id=nvmem0,share=on,mem-path=nvdimm-0,size=16384M,align=1G        \
+        -object memory-backend-file,id=nvmem0,share=on,mem-path=${VM_PMEM_DIR}/nvdimm-0,size=16384M,align=1G        \
         -device nvdimm,memdev=nvmem0,id=nv0,label-size=2M,node=4        \
         -numa node,nodeid=5,        \
-        -object memory-backend-file,id=nvmem1,share=on,mem-path=nvdimm-1,size=16384M,align=1G        \
+        -object memory-backend-file,id=nvmem1,share=on,mem-path=${VM_PMEM_DIR}/nvdimm-1,size=16384M,align=1G        \
         -device nvdimm,memdev=nvmem1,id=nv1,label-size=2M,node=5        \
         -numa dist,src=0,dst=0,val=10        \
         -numa dist,src=0,dst=1,val=21        \

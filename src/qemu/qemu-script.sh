@@ -34,6 +34,7 @@ VM_OVMF_CODE=${HOME}/.local/share/qemu/OVMF_CODE.fd
 VM_OVMF_VARS=${HOME}/.local/share/qemu/OVMF_VARS-${VM_NAME}.fd
 VM_SPICE_PORT=5924                                        # spice port
 VM_SPICE_EXTRA=",disable-ticketing=on"                    # spice extra args
+VM_PMEM_DIR=/tmp                                          # CXL, NVMDIMM files
 EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
 ##################  end default config  ###################
 
