@@ -1,0 +1,17 @@
+source: https://ftp.debian.org/debian/dists/README
+
+This directory, dists, is the canonical way to access the distributions.
+Each distribution can be accessed by name or state from here.
+
+oldoldstable, or buster        - the released Debian 10.13
+oldstable, or bullseye         - the released Debian 11.7
+stable, or bookworm            - the released Debian 12.1
+oldoldstable-proposed-updates  - possible updates to Debian 10
+oldstable-proposed-updates     - possible updates to Debian 11
+proposed-updates               - possible updates to Debian 12
+buster-updates                 - important updates to Debian 10
+bullseye-updates               - important updates to Debian 11
+bookworm-updates               - important updates to Debian 12
+testing, or trixie             - the development version of the next release
+unstable, or sid               - untested candidate packages for future releases
+experimental, or rc-buggy      - experimental packages to be used on top of unstable
