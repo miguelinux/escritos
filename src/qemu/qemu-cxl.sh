@@ -36,7 +36,7 @@ VM_SPICE_PORT=5924                                        # spice port
 VM_SPICE_EXTRA=",disable-ticketing=on"                    # spice extra args
 VM_PMEM_DIR=/tmp                                          # CXL, NVMDIMM files
 VM_QEMU_BIN=""           # Path from another qemu binary
-EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
+EXTRA_QEMU_ARGS="-snapshot"       # -hdd fat:/my_directory
 ##################  end default config  ###################
 
 # Where is the qemu binary
@@ -324,7 +324,6 @@ run_qemu ()
         -device cxl-type3,bus=hb1rp0,memdev=cxl-mem2,id=cxl-dev2,lsa=cxl-lsa2 \
         -device cxl-type3,bus=hb1rp1,memdev=cxl-mem3,id=cxl-dev3,lsa=cxl-lsa3 \
         -M cxl-fmw.0.targets.0=cxl.0,cxl-fmw.0.size=4G,cxl-fmw.0.interleave-granularity=8k,cxl-fmw.1.targets.0=cxl.0,cxl-fmw.1.targets.1=cxl.1,cxl-fmw.1.size=4G,cxl-fmw.1.interleave-granularity=8k \
-        -snapshot \
         -object memory-backend-ram,id=mem0,size=2048M        \
         -numa node,nodeid=0,memdev=mem0,        \
         -numa cpu,node-id=0,socket-id=0        \
