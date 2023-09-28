@@ -35,6 +35,7 @@ VM_OVMF_VARS=${HOME}/.local/share/qemu/OVMF_VARS-${VM_NAME}.fd
 VM_SPICE_PORT=5924                                        # spice port
 VM_SPICE_EXTRA=",disable-ticketing=on"                    # spice extra args
 VM_PMEM_DIR=/tmp                                          # CXL, NVMDIMM files
+VM_QEMU_BIN=""           # Path from another qemu binary
 EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
 ##################  end default config  ###################
 
@@ -152,6 +153,14 @@ my_setup ()
         if [ -x /usr/libexec/qemu-kvm ]
         then
             QEMU_BIN=/usr/libexec/qemu-kvm
+        fi
+    fi
+
+    if [ -n "${VM_QEMU_BIN}" ]
+    then
+        if [ -x ${VM_QEMU_BIN} ]
+        then
+            QEMU_BIN=${VM_QEMU_BIN}
         fi
     fi
 
