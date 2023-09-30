@@ -18,7 +18,7 @@ then
     then
         apt-get -y update
         apt-get -y install git stow tmux vim rsync connect-proxy curl xmlto
-        apt-get -y install build-essential fakeroot devscripts libncurses-dev
-        apt-get -y build-dep  linux
+        apt-get -y install build-essential fakeroot devscripts unifdef libncurses-dev
+        apt-get -y build-dep linux
     fi
 fi
