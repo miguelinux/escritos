@@ -16,9 +16,9 @@ if [ "$NAME" = "Debian GNU/Linux" ]
 then
     if [ -d /etc/apt/sources.list.d ]
     then
-        apt-get update
-        apt-get install -y git stow tmux vim rsync connect-proxy curl xmlto \
-                        build-essential fakeroot devscripts libncurses-dev
-        apt-get build-dep linux
+        apt-get -y update
+        apt-get -y install git stow tmux vim rsync connect-proxy curl xmlto
+        apt-get -y install build-essential fakeroot devscripts libncurses-dev
+        apt-get -y build-dep  linux
     fi
 fi
