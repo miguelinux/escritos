@@ -4,7 +4,11 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# --instance-ids i-XXX
-VM_ID=""
+EXTRA_CMD=""
 
-aws ec2 start-instances ${VM_ID}
+if [ -f $HOME/.aws/cmd/$1 ]
+then
+    EXTRA_CMD=$(< $HOME/.aws/cmd/$1)
+fi
+
+aws ec2 start-instances ${EXTRA_CMD}
