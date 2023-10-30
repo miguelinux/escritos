@@ -36,5 +36,6 @@ if [ -d /home/alumno -a ! -d /home/alumno/.local/git/dotfiles ]
 then
     mkdir -p /home/alumno/.local/git
     git -C /home/alumno/.local/git clone https://github.com/miguelinux/dotfiles.git
+    chown -R alumno:alumno /home/alumno
 fi
 
