@@ -7,4 +7,4 @@
 # --instance-ids i-XXX
 VM_ID=""
 
-aws ec2 describe-instances ${VM_ID} --query 'Reservations[*].Instances[*].[InstanceId, PublicIpAddress]'
+aws ec2 describe-instances ${VM_ID} --query 'Reservations[*].Instances[*].[InstanceId, PublicIpAddress]' $*
