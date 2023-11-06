@@ -4,7 +4,11 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# --instance-ids i-XXX
-VM_ID=""
+EXTRA_CMD=""
 
-aws ec2 describe-instances ${VM_ID} --query 'Reservations[*].Instances[*].[InstanceId, PublicIpAddress]' $*
+if [ -f $HOME/.aws/cmd/$1 ]
+then
+    EXTRA_CMD=$(< $HOME/.aws/cmd/$1)
+fi
+
+aws ec2 describe-instances ${EXTRA_CMD} --query 'Reservations[*].Instances[*].[InstanceId, PublicIpAddress]'
