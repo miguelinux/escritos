@@ -1,8 +1,9 @@
 # Original-from: https://gitlab.com/fsci/resources
 FROM docker.io/library/debian:sid-slim as builder
 
-ARG packages="build-essential debhelper lintian git-buildpackage \
-	      dh-make vim sudo"
+ARG packages="build-essential debhelper lintian dh-make vim sudo"
+#	      dh-make-golang dh-golang
+#  git-buildpackage pbuilder
 
 RUN apt-get update -qq \
 	&& apt-get upgrade -y \
@@ -10,10 +11,13 @@ RUN apt-get update -qq \
         && rm -rf /var/lib/apt/lists/* \
         && useradd -ms /bin/bash developer \
         && echo "developer:developer" | chpasswd \
-        && adduser developer sudo
+        && adduser developer sudo \
+	&& echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/015_developer-nopasswd
+
+
+FROM docker.io/library/debian:sid-slim
 
 USER developer
 WORKDIR /home/developer
 
-FROM debian:sid-slim
 COPY --from=builder / /
