@@ -1,0 +1,19 @@
+# Original-from: https://gitlab.com/fsci/resources
+FROM docker.io/library/debian:sid-slim as builder
+
+ARG packages="build-essential debhelper lintian git-buildpackage \
+	      dh-make vim sudo"
+
+RUN apt-get update -qq \
+	&& apt-get upgrade -y \
+        && apt-get install -y -m $packages \
+        && rm -rf /var/lib/apt/lists/* \
+        && useradd -ms /bin/bash developer \
+        && echo "developer:developer" | chpasswd \
+        && adduser developer sudo
+
+USER developer
+WORKDIR /home/developer
+
+FROM debian:sid-slim
+COPY --from=builder / /
