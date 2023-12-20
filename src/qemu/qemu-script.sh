@@ -11,7 +11,7 @@ VM_MONITOR="" #"/run/user/${UID}/qemu/${VM_NAME}-vm-monitor.sock" # Monitor unix
 VM_MEM=2048                                               # VM RAM
 VM_CPU="host" #,migratable=on,hv-time=on,hv-relaxed=on,hv-vapic=on,hv-spinlocks=0x1fff,hv-vpindex=on,hv-runtime=on,hv-synic=on,hv-stimer=on,hv-stimer-direct=on,hv-reset=on,hv-vendor-id=KVM,hv-frequencies=on,hv-reenlightenment=on,hv-tlbflush=on,hv-ipi=on,hv-evmcs=on"
 # Use ^^ options on VM_CPU when Windows
-VM_SMP="cpus=4,cores=2,threads=2,sockets=1"               # SMP
+VM_SMP="4,sockets=4,cores=1,threads=1"               # SMP
 VM_SERIAL=none                                            # VM Serial
 VM_RTC_WIN=0 # 1 = windows, 0 = other
 VM_TPM=0 # 1 = Use TPM, 0 = No use tpm
