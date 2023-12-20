@@ -7,12 +7,13 @@
 ##################  start default config  ##################
 VM_NAME=vm001
 VM_DEV_NET="virtio-net-pci"                               # VM type NIC
-VM_MONITOR="" #"${HOME}/.cache/qemu/${VM_NAME}-vm-monitor.sock" # Monitor unix socket
+VM_MONITOR="" #"/run/user/${UID}/qemu/${VM_NAME}-vm-monitor.sock" # Monitor unix socket
 VM_MEM=2048                                               # VM RAM
 VM_CPU=host                                               # CPU type
 VM_SMP="cpus=4,cores=2,threads=2,sockets=1"               # SMP
 VM_SERIAL=none                                            # VM Serial
 VM_RTC_WIN="" #"-rtc base=localtime"  # if OS is windows set to localtime
+VM_TPM=0 # 1 = Use TPM, 0 = No use tpm
 VM_IMG_1=""                                               # VM Image 1
 VM_IMG_FMT_1=qcow2       # raw|qcow2|luks|vmdk|vpc|VHDX
 VM_IMG_CACHE_1=writeback # writethrough|writeback(Default)|none|directsync|unsafe
@@ -140,12 +141,12 @@ my_setup ()
     fi
 
     # Create cache dir if not exist
-    mkdir -p ${HOME}/.cache/qemu
+    mkdir -p /run/user/${UID}/qemu
 
     # Ensure VM_MONITOR
     if [ -z "${VM_MONITOR}" ]
     then
-        VM_MONITOR=${HOME}/.cache/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
+        VM_MONITOR=/run/user/${UID}/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
     fi
 
     if [ -z "${QEMU_BIN}" ]
@@ -223,12 +224,12 @@ parse_args ()
             -c|--command)
                 shift
                 # Create cache dir if not exist
-                mkdir -p ${HOME}/.cache/qemu
+                mkdir -p /run/user/${UID}/qemu
 
                 # Ensure VM_MONITOR
                 if [ -z "${VM_MONITOR}" ]
                 then
-                    VM_MONITOR=${HOME}/.cache/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
+                    VM_MONITOR=/run/user/${UID}/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
                 fi
                 if [ -S ${VM_MONITOR} ]
                 then
@@ -258,6 +259,29 @@ parse_args ()
         esac
         shift
     done
+}
+
+run_swtpm ()
+{
+    if [ "${VM_TPM}" = "0" ]
+    then
+        # Do not use TPM
+        return
+    fi
+    if [ ! -e /usr/bin/swtpm ]
+    then
+        die  "No /usr/bin/swtpm Found"
+    fi
+
+    # Create cache dir if not exist
+    mkdir -p ${HOME}/.cache/swtpm/${VM_NAME}
+
+    /usr/bin/swtpm socket \
+        --ctrl type=unixio,path=/run/user/${UID}/qemu/${VM_NAME}-swtpm.sock,mode=0600 \
+        --tpmstate dir=${HOME}/.cache/swtpm/${VM_NAME}/tpm2,mode=0600 \
+        --log file=${HOME}/.cache/swtpm/${VM_NAME}/${VM_NAME}-swtpm.log \
+        --terminate \
+        --tpm2
 }
 
 run_qemu ()
@@ -320,4 +344,5 @@ fi
 parse_args $@
 is_running
 my_setup
+run_swtpm
 run_qemu
