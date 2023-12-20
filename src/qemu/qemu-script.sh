@@ -15,6 +15,7 @@ VM_SMP="cpus=4,cores=2,threads=2,sockets=1"               # SMP
 VM_SERIAL=none                                            # VM Serial
 VM_RTC_WIN=0 # 1 = windows, 0 = other
 VM_TPM=0 # 1 = Use TPM, 0 = No use tpm
+VM_SEC_BOOT=0 # 1 = use Secure Boot, 0 = don't use SB
 VM_MACHINE_EXTRAS=",usb=on" #,vmport=off,smm=on,dump-guest-core=off"
 VM_IMG_1=""                                               # VM Image 1
 VM_IMG_FMT_1=qcow2       # raw|qcow2|luks|vmdk|vpc|VHDX
@@ -156,6 +157,12 @@ my_setup ()
     then
         QEMU_RTC="-rtc base=localtime,driftfix=slew"
         QEMU_RTC+=" -global kvm-pit.lost_tick_policy=delay"
+    fi
+
+    QEMU_SEC_BOOT=""
+    if [ "${VM_SEC_BOOT}" = "1" ]
+    then
+        QEMU_SEC_BOOT="-global driver=cfi.pflash01,property=secure,value=on"
     fi
 
     if [ -z "${QEMU_BIN}" ]
@@ -315,6 +322,7 @@ run_qemu ()
         ${QEMU_TPM}                                                     \
         -device intel-hda                                               \
         -device hda-duplex                                              \
+        ${QEMU_SEC_BOOT}                                                \
         -object iothread,id=io1                                         \
         -device virtio-blk-pci,drive=disk0,iothread=io1,bootindex=${VM_BOOT_IMG} \
         -drive file=${VM_OVMF_CODE},if=pflash,format=raw,unit=0,readonly=on \
