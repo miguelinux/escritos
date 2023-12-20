@@ -149,11 +149,11 @@ my_setup ()
         VM_MONITOR=/run/user/${UID}/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
     fi
 
-    VM_RTC_SETUP=""
+    QEMU_RTC=""
     if [ "${VM_RTC_WIN}" = "1" ]
     then
-        VM_RTC_SETUP="-rtc base=localtime,driftfix=slew"
-        VM_RTC_SETUP+=" -global kvm-pit.lost_tick_policy=delay"
+        QEMU_RTC="-rtc base=localtime,driftfix=slew"
+        QEMU_RTC+=" -global kvm-pit.lost_tick_policy=delay"
     fi
 
     if [ -z "${QEMU_BIN}" ]
@@ -270,7 +270,7 @@ parse_args ()
 
 run_swtpm ()
 {
-    VM_TPM_DEV=""
+    QEMU_TPM=""
     if [ "${VM_TPM}" = "1" ]
     then
         if [ ! -e /usr/bin/swtpm ]
@@ -288,10 +288,9 @@ run_swtpm ()
             --terminate \
             --tpm2
 
-        VM_TPM_DEV="-chardev socket,id=chrtpm,path=/run/user/${UID}/qemu/${VM_NAME}-swtpm.sock "
-        VM_TPM_DEV+="-tpmdev emulator,id=tpm-tpm0,chardev=chrtpm "
-        VM_TPM_DEV+="-device tpm-crb,id=tpm0,tpmdev=tpm-tpm0"
-
+        QEMU_TPM="-chardev socket,id=chrtpm,path=/run/user/${UID}/qemu/${VM_NAME}-swtpm.sock"
+        QEMU_TPM+=" -tpmdev emulator,id=tpm-tpm0,chardev=chrtpm"
+        QEMU_TPM+=" -device tpm-crb,id=tpm0,tpmdev=tpm-tpm0"
     fi
 }
 
@@ -305,13 +304,13 @@ run_qemu ()
         -enable-kvm                                                     \
         -smp ${VM_SMP}                                                  \
         -m ${VM_MEM}                                                    \
-        ${VM_RTC_SETUP}                                                 \
+        ${QEMU_RTC}                                                     \
         -monitor unix:${VM_MONITOR},server,nowait                       \
         -serial ${VM_SERIAL}                                            \
         -parallel none                                                  \
         -display none                                                   \
         -nographic                                                      \
-        ${VM_TPM_DEV}                                                   \
+        ${QEMU_TPM}                                                     \
         -device intel-hda                                               \
         -device hda-duplex                                              \
         -object iothread,id=io1                                         \
