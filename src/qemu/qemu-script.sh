@@ -288,14 +288,15 @@ run_swtpm ()
         fi
 
         # Create cache dir if not exist
-        mkdir -p ${HOME}/.cache/swtpm/${VM_NAME}
+        mkdir -p ${HOME}/.cache/swtpm/${VM_NAME}/tpm2
 
         /usr/bin/swtpm socket \
             --ctrl type=unixio,path=/run/user/${UID}/qemu/${VM_NAME}-swtpm.sock,mode=0600 \
             --tpmstate dir=${HOME}/.cache/swtpm/${VM_NAME}/tpm2,mode=0600 \
             --log file=${HOME}/.cache/swtpm/${VM_NAME}/${VM_NAME}-swtpm.log \
             --terminate \
-            --tpm2
+            --tpm2 \
+            --daemon
 
         QEMU_TPM="-chardev socket,id=chrtpm,path=/run/user/${UID}/qemu/${VM_NAME}-swtpm.sock"
         QEMU_TPM+=" -tpmdev emulator,id=tpm-tpm0,chardev=chrtpm"
