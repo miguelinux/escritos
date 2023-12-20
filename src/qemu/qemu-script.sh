@@ -154,7 +154,6 @@ my_setup ()
     then
         VM_RTC_SETUP="-rtc base=localtime,driftfix=slew"
         VM_RTC_SETUP+=" -global kvm-pit.lost_tick_policy=delay"
-        VM_RTC_SETUP+=" -no-hpet"
     fi
 
     if [ -z "${QEMU_BIN}" ]
