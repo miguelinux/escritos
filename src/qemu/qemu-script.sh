@@ -339,7 +339,6 @@ run_qemu ()
         -object rng-random,id=virtio-rng0,filename=/dev/random          \
         -device virtio-rng-pci,rng=virtio-rng0,id=rng0,bus=pcie.0,addr=0x9 \
         -device qemu-xhci,id=usb                                        \
-        -device usb-tablet,bus=usb.0                                    \
         -chardev spicevmc,name=usbredir,id=usbredirchardev1             \
         -device usb-redir,chardev=usbredirchardev1,id=usbredirdev1      \
         -chardev spicevmc,name=usbredir,id=usbredirchardev2             \
