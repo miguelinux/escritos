@@ -263,25 +263,23 @@ parse_args ()
 
 run_swtpm ()
 {
-    if [ "${VM_TPM}" = "0" ]
+    if [ "${VM_TPM}" = "1" ]
     then
-        # Do not use TPM
-        return
-    fi
-    if [ ! -e /usr/bin/swtpm ]
-    then
-        die  "No /usr/bin/swtpm Found"
-    fi
+        if [ ! -e /usr/bin/swtpm ]
+        then
+            die  "No /usr/bin/swtpm Found"
+        fi
 
-    # Create cache dir if not exist
-    mkdir -p ${HOME}/.cache/swtpm/${VM_NAME}
+        # Create cache dir if not exist
+        mkdir -p ${HOME}/.cache/swtpm/${VM_NAME}
 
-    /usr/bin/swtpm socket \
-        --ctrl type=unixio,path=/run/user/${UID}/qemu/${VM_NAME}-swtpm.sock,mode=0600 \
-        --tpmstate dir=${HOME}/.cache/swtpm/${VM_NAME}/tpm2,mode=0600 \
-        --log file=${HOME}/.cache/swtpm/${VM_NAME}/${VM_NAME}-swtpm.log \
-        --terminate \
-        --tpm2
+        /usr/bin/swtpm socket \
+            --ctrl type=unixio,path=/run/user/${UID}/qemu/${VM_NAME}-swtpm.sock,mode=0600 \
+            --tpmstate dir=${HOME}/.cache/swtpm/${VM_NAME}/tpm2,mode=0600 \
+            --log file=${HOME}/.cache/swtpm/${VM_NAME}/${VM_NAME}-swtpm.log \
+            --terminate \
+            --tpm2
+    fi
 }
 
 run_qemu ()
