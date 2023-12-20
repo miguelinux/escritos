@@ -12,7 +12,7 @@ VM_MEM=2048                                               # VM RAM
 VM_CPU=host                                               # CPU type
 VM_SMP="cpus=4,cores=2,threads=2,sockets=1"               # SMP
 VM_SERIAL=none                                            # VM Serial
-VM_RTC_WIN="" #"-rtc base=localtime"  # if OS is windows set to localtime
+VM_RTC_WIN=0 # 1 = windows, 0 = other
 VM_TPM=0 # 1 = Use TPM, 0 = No use tpm
 VM_IMG_1=""                                               # VM Image 1
 VM_IMG_FMT_1=qcow2       # raw|qcow2|luks|vmdk|vpc|VHDX
@@ -147,6 +147,14 @@ my_setup ()
     if [ -z "${VM_MONITOR}" ]
     then
         VM_MONITOR=/run/user/${UID}/qemu/${VM_NAME}-vm-monitor.sock # Monitor unix socket
+    fi
+
+    VM_RTC_SETUP=""
+    if [ "${VM_RTC_WIN}" = "1" ]
+    then
+        VM_RTC_SETUP="-rtc base=localtime,driftfix=slew"
+        VM_RTC_SETUP+=" -global kvm-pit.lost_tick_policy=delay"
+        VM_RTC_SETUP+=" -no-hpet"
     fi
 
     if [ -z "${QEMU_BIN}" ]
@@ -298,7 +306,7 @@ run_qemu ()
         -enable-kvm                                                     \
         -smp ${VM_SMP}                                                  \
         -m ${VM_MEM}                                                    \
-        ${VM_RTC_WIN}                                                   \
+        ${VM_RTC_SETUP}                                                 \
         -monitor unix:${VM_MONITOR},server,nowait                       \
         -serial ${VM_SERIAL}                                            \
         -parallel none                                                  \
