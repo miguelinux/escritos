@@ -263,6 +263,7 @@ parse_args ()
 
 run_swtpm ()
 {
+    VM_TPM_DEV=""
     if [ "${VM_TPM}" = "1" ]
     then
         if [ ! -e /usr/bin/swtpm ]
@@ -279,6 +280,11 @@ run_swtpm ()
             --log file=${HOME}/.cache/swtpm/${VM_NAME}/${VM_NAME}-swtpm.log \
             --terminate \
             --tpm2
+
+        VM_TPM_DEV="-chardev socket,id=chrtpm,path=/run/user/${UID}/qemu/${VM_NAME}-swtpm.sock "
+        VM_TPM_DEV+="-tpmdev emulator,id=tpm-tpm0,chardev=chrtpm "
+        VM_TPM_DEV+="-device tpm-crb,id=tpm0,tpmdev=tpm-tpm0"
+
     fi
 }
 
@@ -298,6 +304,7 @@ run_qemu ()
         -parallel none                                                  \
         -display none                                                   \
         -nographic                                                      \
+        ${VM_TPM_DEV}                                                   \
         -device intel-hda                                               \
         -device hda-duplex                                              \
         -object iothread,id=io1                                         \
