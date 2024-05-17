@@ -1,0 +1,1 @@
+sudo apt install bison flex gnupg libncurses-dev libelf-dev libssl-dev wget autoconf python3-docutils
