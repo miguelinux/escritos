@@ -20,3 +20,6 @@ then
         apt-get update
     fi
 fi
+## Examples:
+# sudo apt-get -t bookworm-backports install linux-image-amd64
+# sudo apt-get install -t bookworm-backports qemu-system-x86
