@@ -16,10 +16,10 @@ if [ "$NAME" = "Debian GNU/Linux" ]
 then
     if [ -d /etc/apt/sources.list.d ]
     then
-        echo "deb http://deb.debian.org/debian bookworm-backports main" > /etc/apt/sources.list.d/bookworm-backports.list
+        echo "deb http://deb.debian.org/debian stable-backports main" > /etc/apt/sources.list.d/stable-backports.list
         apt-get update
     fi
 fi
-## Examples:
-# sudo apt-get -t bookworm-backports install linux-image-amd64
-# sudo apt-get install -t bookworm-backports qemu-system-x86
+echo Examples:
+echo sudo apt-get -t stable-backports install linux-image-amd64
+echo sudo apt-get install -t stable-backports qemu-system-x86
