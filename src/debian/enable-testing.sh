@@ -18,5 +18,9 @@ then
     then
         echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list.d/testing.list
         apt-get update
+        echo
+        echo "Example:"
+        echo "apt-get -t testing install <pkg>"
+        echo
     fi
 fi
