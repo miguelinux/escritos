@@ -10,9 +10,14 @@ base_config=$1
 check_config=$2
 
 while read -r line; do
-    if [ "#" = ${line:0} ]
+    if [ "#" = "${line:0:1}" ]
+    then
+        continue
+    fi
+    if [ -z "${line}" ]
+    then
         continue
     fi
     echo $line
-done < $1
+done < $base_config
 
