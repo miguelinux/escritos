@@ -16,7 +16,7 @@ if [ "$NAME" = "Debian GNU/Linux" ]
 then
     if [ -d /etc/apt/sources.list.d ]
     then
-        echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list.d/testing.list
+        echo "deb http://deb.debian.org/debian testing main non-free-firmware" > /etc/apt/sources.list.d/testing.list
         apt-get update
         echo
         echo "Example:"

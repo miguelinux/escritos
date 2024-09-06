@@ -16,7 +16,7 @@ if [ "$NAME" = "Debian GNU/Linux" ]
 then
     if [ -d /etc/apt/sources.list.d ]
     then
-        echo "deb http://deb.debian.org/debian stable-backports main" > /etc/apt/sources.list.d/stable-backports.list
+        echo "deb http://deb.debian.org/debian stable-backports main non-free-firmware" > /etc/apt/sources.list.d/stable-backports.list
         apt-get update
     fi
 fi
