@@ -6,6 +6,8 @@
 
 source /usr/lib/os-release
 
+my_name=${0##*/}
+
 if [ $UID -ne 0 ]
 then
     echo "Please run with \"root\" or \"sudo $0\""
@@ -16,11 +18,16 @@ if [ "$NAME" = "Debian GNU/Linux" ]
 then
     if [ -d /etc/apt/sources.list.d ]
     then
-        echo "deb http://deb.debian.org/debian testing main non-free-firmware" > /etc/apt/sources.list.d/testing.list
-        apt-get update
-        echo
-        echo "Example:"
-        echo "apt-get -t testing install <pkg>"
-        echo
+        if [ "$my_name" = "disable-testing.sh" ]
+        then
+            rm -f /etc/apt/sources.list.d/testing.list
+        else
+            echo "deb http://deb.debian.org/debian testing main non-free-firmware" > /etc/apt/sources.list.d/testing.list
+            apt-get update
+            echo
+            echo "Example:"
+            echo "sudo apt-get -t testing install <pkg>"
+            echo
+        fi
     fi
 fi
