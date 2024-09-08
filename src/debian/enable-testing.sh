@@ -21,6 +21,7 @@ then
         if [ "$my_name" = "disable-testing.sh" ]
         then
             rm -f /etc/apt/sources.list.d/testing.list
+            apt-get update
         else
             echo "deb http://deb.debian.org/debian testing main non-free-firmware" > /etc/apt/sources.list.d/testing.list
             apt-get update
