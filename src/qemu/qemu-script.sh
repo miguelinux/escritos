@@ -85,7 +85,12 @@ my_setup ()
 
     if [ ! -f "${VM_OVMF_CODE}" ]
     then
-        if [ -f /usr/share/qemu/OVMF_CODE.fd ]
+        if [ -f /usr/share/OVMF/OVMF_CODE_4M.fd ]
+        then
+            # Debian Trixie
+            mkdir -p ${VM_OVMF_CODE%/*}
+            cp /usr/share/OVMF/OVMF_CODE_4M.fd ${VM_OVMF_CODE}
+        elif [ -f /usr/share/qemu/OVMF_CODE.fd ]
         then
             mkdir -p ${VM_OVMF_CODE%/*}
             cp /usr/share/qemu/OVMF_CODE.fd ${VM_OVMF_CODE}
@@ -108,7 +113,12 @@ my_setup ()
 
     if [ ! -f "${VM_OVMF_VARS}" ]
     then
-        if [ -f /usr/share/qemu/OVMF_VARS.fd ]
+        if [ -f /usr/share/OVMF/OVMF_VARS_4M.fd ]
+        then
+            # Debian Trixie
+            mkdir -p ${VM_OVMF_VARS%/*}
+            cp /usr/share/OVMF/OVMF_VARS_4M.fd ${VM_OVMF_VARS}
+        elif [ -f /usr/share/qemu/OVMF_VARS.fd ]
         then
             mkdir -p ${VM_OVMF_VARS%/*}
             cp /usr/share/qemu/OVMF_VARS.fd ${VM_OVMF_VARS}
