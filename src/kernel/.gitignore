@@ -3,3 +3,4 @@ lib/
 usr/
 
 config*
+*.config
