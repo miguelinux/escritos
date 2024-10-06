@@ -4,3 +4,5 @@ usr/
 
 config*
 *.config
+
+*.csv
