@@ -48,12 +48,23 @@ then
     fi
 fi
 
-kernel_file=linux-${kernel_ver}.tar.xz
 deb_kernel_file=linux_${kernel_ver}.orig.tar.xz
 
 if [ ! -f ../${deb_kernel_file} ]
 then
-    curl -L -o ../${deb_kernel_file} https://cdn.kernel.org/pub/linux/kernel/v6.x/${kernel_file}
+    kernel_file=linux-${kernel_ver}.tar.xz
+    kernel_url=https://cdn.kernel.org/pub/linux/kernel/v6.x
+
+    if echo $kernel_ver | grep --quiet \~
+    then
+        # kernel version fixed
+        kvf=$(echo $kernel_ver | tr \~  -)
+        echo $kvf
+        kernel_file=linux-${kvf}.tar.gz
+        kernel_url=https://git.kernel.org/torvalds/t
+    fi
+
+    curl -L -o ../${deb_kernel_file} ${kernel_url}/${kernel_file}
 fi
 
 debian/rules orig
