@@ -68,5 +68,7 @@ then
 fi
 
 debian/rules orig
+set +e
 debian/rules debian/control
+set -e
 dpkg-architecture -a$ARCH -c make -f debian/rules.gen setup_${ARCH}_${FEATURESET}_${FLAVOUR}
