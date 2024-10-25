@@ -1,0 +1,25 @@
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+From: Miguel Bernal Marin <miguel.bernal.marin@gmail.com>
+To: Debian Bug Tracking System <submit@bugs.debian.org>
+Subject: linux: 
+Bcc: Miguel Bernal Marin <miguel.bernal.marin@gmail.com>
+
+Source: linux
+Version: 6.5~rc7-1~exp1
+Severity: wishlist
+Tags: patch
+X-Debbugs-Cc: 
+
+Dear Maintainer,
+
+...
+
+A MR was created with this proposal at:
+
+https://salsa.debian.org/kernel-team/linux/-/merge_requests/XXXX
+
+Thanks,
+Miguel Bernal Marin
+# vi: spl=en spell filetype=mail
