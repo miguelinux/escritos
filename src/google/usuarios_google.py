@@ -9,11 +9,32 @@ Filtro para el menejo de usuarios de google
 """
 
 
-def main():
+def get_org_unit_path(archivo):
+    """Optiene el valor de los Org Unit Path"""
+
+    # Regresamos al inicio
+    archivo.seek(0)
+    # Leemos el encabezado
+    archivo.readline()
+
+    lista_org_path = set()
+
+    for linea in archivo:
+        lista = linea.split(",")
+        # add "Org Unit Path [Required]"
+        lista_org_path.add(lista[5])
+
+    for org_path in lista_org_path:
+        print(org_path)
+
+
+def main(str_archivo):
     """
-    Comentario de la función
+    Función principal
     """
-    print("Hola Mundo")
+
+    with open(str_archivo, mode="r", encoding="utf-8") as archivo:
+        get_org_unit_path(archivo)
 
 
 if __name__ == "__main__":
@@ -28,4 +49,4 @@ if __name__ == "__main__":
         print("Error: el archivo no existe")
         sys.exit(2)
 
-    main()
+    main(sys.argv[1])
