@@ -28,13 +28,24 @@ def get_org_unit_path(archivo):
         print(org_path)
 
 
+def get_storage_sorted(archivo):
+    """Obtiene los nombres y correos junto con su espacio ordenado
+    de mayor a menor"""
+
+    # Regresamos al inicio
+    archivo.seek(0)
+    # Leemos el encabezado
+    archivo.readline()
+
+
 def main(str_archivo):
     """
     Función principal
     """
 
     with open(str_archivo, mode="r", encoding="utf-8") as archivo:
-        get_org_unit_path(archivo)
+        # get_org_unit_path(archivo)
+        get_storage_sorted(archivo)
 
 
 if __name__ == "__main__":
