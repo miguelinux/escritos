@@ -5,6 +5,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
+# Miguel UID
+M_UID=${1:-1980}
+
 source /usr/lib/os-release
 
 if [ $UID -ne 0 ]
@@ -16,7 +19,7 @@ fi
 if [ ! -d /home/miguel ]
 then
     useradd \
-	--uid 1980 \
+	--uid $M_UID \
 	--shell /usr/bin/bash \
 	--create-home \
 	--home-dir /home/miguel \
