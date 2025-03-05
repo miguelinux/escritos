@@ -54,7 +54,7 @@ case $ID in
         if [ -n "$http_proxy" ]
         then
             proxyfile=$(mktemp)
-            echo Acquire::http::Proxy "${http_proxy};" > $proxyfile
+            echo Acquire::http::Proxy \"${http_proxy}\"\; > $proxyfile
             incus file push $proxyfile ${contenedor}/etc/apt/apt.conf.d/proxy.conf
             rm $proxyfile
         fi
