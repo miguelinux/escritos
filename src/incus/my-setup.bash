@@ -70,9 +70,9 @@ esac
 case $ID in
     debian| centos)
         incus file push add-user-miguel.sh ${contenedor}/root/add-user-miguel.sh
-        incus exec ${contenedor} -- /root/add-user-miguel.sh
+        incus exec ${contenedor} -- /root/add-user-miguel.sh $UID
 
-        setup_my_user 1980 /home/miguel
+        setup_my_user $UID /home/miguel
     ;;
     ubuntu)
         setup_my_user 1000 /home/ubuntu
