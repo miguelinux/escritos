@@ -38,6 +38,7 @@ source <(incus exec ${contenedor} cat /etc/os-release)
 packages_to_install="git git-lfs tmux vim rsync curl"
 packages_to_install_too="stow connect-proxy"
 
+# Update container
 case $ID in
     #fedora)
         #dnf -y update
@@ -48,19 +49,25 @@ case $ID in
         incus exec ${contenedor} -- dnf -y update
         incus exec ${contenedor} -- dnf -y install $packages_to_install
         incus exec ${contenedor} -- dnf -y install openssh-server
-        incus file push add-user-miguel.sh ${contenedor}/root/add-user-miguel.sh
-        incus exec ${contenedor} -- /root/add-user-miguel.sh
-
-        setup_my_user 1980 /home/miguel
     ;;
-    #debian|
-    ubuntu)
+    debian| ubuntu)
         incus exec ${contenedor} -- apt-get -y update
         incus exec ${contenedor} -- apt-get -y upgrade
         incus exec ${contenedor} -- apt-get -y install $packages_to_install
         incus exec ${contenedor} -- apt-get -y install $packages_to_install_too
         incus exec ${contenedor} -- apt-get -y install openssh-server
+    ;;
+esac
 
+# Create & setup user
+case $ID in
+    debian| centos)
+        incus file push add-user-miguel.sh ${contenedor}/root/add-user-miguel.sh
+        incus exec ${contenedor} -- /root/add-user-miguel.sh
+
+        setup_my_user 1980 /home/miguel
+    ;;
+    ubuntu)
         setup_my_user 1000 /home/ubuntu
     ;;
 esac
