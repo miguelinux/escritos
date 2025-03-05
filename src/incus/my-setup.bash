@@ -4,6 +4,21 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+setup_my_user ()
+{
+        user_id=$1
+        user_home=$2
+        incus exec ${contenedor} --user ${user_id} --group ${user_id} -- \
+            mkdir -m 700 -p ${user_home}/.ssh
+        incus file push incus.key.pub \
+            ${contenedor}${user_home}/.ssh/authorized_keys --uid ${user_id} --gid ${user_id}
+
+        incus exec ${contenedor} --user ${user_id} --group ${user_id} -- \
+            mkdir -p ${user_home}/git
+        incus exec ${contenedor} --user ${user_id} --group ${user_id} -- \
+            git -C ${user_home}/git clone https://github.com/miguelinux/dotfiles.git
+}
+
 contenedor=$1
 
 if [ -z "${contenedor}" ]
@@ -29,10 +44,15 @@ case $ID in
         #dnf -y install $packages_to_install
         #dnf -y install $packages_to_install_too
     #;;
-    #centos)
-        #dnf -y update
-        #dnf -y install $packages_to_install
-    #;;
+    centos)
+        incus exec ${contenedor} -- dnf -y update
+        incus exec ${contenedor} -- dnf -y install $packages_to_install
+        incus exec ${contenedor} -- dnf -y install openssh-server
+        incus file push add-user-miguel.sh ${contenedor}/root/add-user-miguel.sh
+        incus exec ${contenedor} -- /root/add-user-miguel.sh
+
+        setup_my_user 1980 /home/miguel
+    ;;
     #debian|
     ubuntu)
         incus exec ${contenedor} -- apt-get -y update
@@ -41,10 +61,6 @@ case $ID in
         incus exec ${contenedor} -- apt-get -y install $packages_to_install_too
         incus exec ${contenedor} -- apt-get -y install openssh-server
 
-        incus exec ${contenedor} --user 1000 --group 1000 -- mkdir -m 700 -p /home/ubuntu/.ssh
-        incus file push incus.key.pub ${contenedor}/home/ubuntu/.ssh/authorized_keys --uid 1000 --gid 1000 
-
-        incus exec ${contenedor} --user 1000 --group 1000 -- mkdir -p /home/ubuntu/git
-        incus exec ${contenedor} --user 1000 --group 1000 -- git -C /home/ubuntu/git clone https://github.com/miguelinux/dotfiles.git
+        setup_my_user 1000 /home/ubuntu
     ;;
 esac
