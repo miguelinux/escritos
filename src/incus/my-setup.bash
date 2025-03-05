@@ -8,6 +8,12 @@ setup_my_user ()
 {
         user_id=$1
         user_home=$2
+        proxy_env=""
+
+        if [ -n "$https_proxy" ]
+        then
+            proxy_env="--env=https_proxy=$https_proxy"
+        fi
         incus exec ${contenedor} --user ${user_id} --group ${user_id} -- \
             mkdir -m 700 -p ${user_home}/.ssh
         incus file push incus.key.pub \
@@ -15,7 +21,7 @@ setup_my_user ()
 
         incus exec ${contenedor} --user ${user_id} --group ${user_id} -- \
             mkdir -p ${user_home}/git
-        incus exec ${contenedor} --user ${user_id} --group ${user_id} -- \
+        incus exec ${contenedor} --user ${user_id} --group ${user_id} $proxy_env -- \
             git -C ${user_home}/git clone https://github.com/miguelinux/dotfiles.git
 }
 
