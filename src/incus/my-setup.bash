@@ -51,6 +51,13 @@ case $ID in
         incus exec ${contenedor} -- dnf -y install openssh-server
     ;;
     debian| ubuntu)
+        if [ -n "$http_proxy" ]
+        then
+            proxyfile=$(mktemp)
+            echo Acquire::http::Proxy "${http_proxy};" > $proxyfile
+            incus file push $proxyfile ${contenedor}/etc/apt/apt.conf.d/proxy.conf
+            rm $proxyfile
+        fi
         incus exec ${contenedor} -- apt-get -y update
         incus exec ${contenedor} -- apt-get -y upgrade
         incus exec ${contenedor} -- apt-get -y install $packages_to_install
