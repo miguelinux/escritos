@@ -23,6 +23,19 @@ setup_my_user ()
             mkdir -p ${user_home}/git
         incus exec ${contenedor} --user ${user_id} --group ${user_id} $proxy_env -- \
             git -C ${user_home}/git clone https://github.com/miguelinux/dotfiles.git
+
+        if [ -n "$http_proxy" ]
+        then
+            proxyfile=$(mktemp)
+            echo export http_proxy=$http_proxy > $proxyfile
+            echo export https_proxy=$https_proxy >> $proxyfile
+
+            incus exec ${contenedor} --user ${user_id} --group ${user_id} -- \
+                mkdir -p ${user_home}/.config/shrc
+            incus file push $proxyfile \
+                ${contenedor}${user_home}/.config/shrc/proxy --uid ${user_id} --gid ${user_id}
+            rm $proxyfile
+        fi
 }
 
 contenedor=$1
@@ -74,7 +87,7 @@ esac
 
 # Create & setup user
 case $ID in
-    debian| centos)
+    debian | centos)
         incus file push add-user-miguel.sh ${contenedor}/root/add-user-miguel.sh
         incus exec ${contenedor} -- /root/add-user-miguel.sh $UID
 
