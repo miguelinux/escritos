@@ -29,6 +29,7 @@ setup_my_user ()
             proxyfile=$(mktemp)
             echo export http_proxy=$http_proxy > $proxyfile
             echo export https_proxy=$https_proxy >> $proxyfile
+            echo export no_proxy=$no_proxy >> $proxyfile
 
             incus exec ${contenedor} --user ${user_id} --group ${user_id} -- \
                 mkdir -p ${user_home}/.config/shrc
