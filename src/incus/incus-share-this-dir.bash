@@ -27,7 +27,7 @@ then
     exit 1
 fi
 
-echo incus config device add ${instance_name} ${device_name} disk \
+incus config device add ${instance_name} ${device_name} disk \
     source=${path_on_host} \
     path=${path_in_instance} \
     shift=true
