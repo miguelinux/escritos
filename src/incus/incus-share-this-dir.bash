@@ -12,20 +12,27 @@ path_on_host=$(realpath $PWD)
 if [ -z "${instance_name}" ]
 then
     >&2 echo "Falta nombre del contenedor"
-    exit 1
-fi
-
-if [ -z "${path_in_instance}" ]
-then
-    >&2 echo "Falta ruta interna del directorio"
+    >&2 echo ""
+    >&2 echo "$0 <instance_name> <device_name> <path_in_instance>"
     exit 1
 fi
 
 if [ -z "${device_name}" ]
 then
     >&2 echo "Falta nombre/variable del dispositivo"
+    >&2 echo ""
+    >&2 echo "$0 <instance_name> <device_name> <path_in_instance>"
     exit 1
 fi
+
+if [ -z "${path_in_instance}" ]
+then
+    >&2 echo "Falta ruta interna del directorio"
+    >&2 echo ""
+    >&2 echo "$0 <instance_name> <device_name> <path_in_instance>"
+    exit 1
+fi
+
 
 incus config device add ${instance_name} ${device_name} disk \
     source=${path_on_host} \
