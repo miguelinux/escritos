@@ -66,6 +66,14 @@ case $ID in
         #dnf -y install $packages_to_install_too
     #;;
     centos)
+        if [ -n "$http_proxy" ]
+        then
+            dnf_conf=$(mktemp)
+            incus file pull ${contenedor}/etc/dnf/dnf.conf $dnf_conf
+            echo "proxy=$http_proxy" >> $dnf_conf
+            incus file push $dnf_conf ${contenedor}/etc/dnf/dnf.conf
+            rm $dnf_conf
+        fi
         incus exec ${contenedor} -- dnf -y update
         incus exec ${contenedor} -- dnf -y install $packages_to_install
         incus exec ${contenedor} -- dnf -y install openssh-server
