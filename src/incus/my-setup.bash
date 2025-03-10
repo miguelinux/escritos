@@ -77,6 +77,7 @@ case $ID in
         incus exec ${contenedor} -- dnf -y update
         incus exec ${contenedor} -- dnf -y install $packages_to_install
         incus exec ${contenedor} -- dnf -y install openssh-server
+        incus exec ${contenedor} -- systemctl start sshd
     ;;
     debian| ubuntu)
         if [ -n "$http_proxy" ]
