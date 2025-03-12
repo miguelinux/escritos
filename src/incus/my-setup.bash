@@ -27,9 +27,13 @@ setup_my_user ()
         if [ -n "$http_proxy" ]
         then
             proxyfile=$(mktemp)
-            echo export http_proxy=$http_proxy > $proxyfile
+            echo export http_proxy=$http_proxy   >  $proxyfile
             echo export https_proxy=$https_proxy >> $proxyfile
-            echo export no_proxy=$no_proxy >> $proxyfile
+            echo export no_proxy=$no_proxy       >> $proxyfile
+            echo "# uppercase variables"         >> $proxyfile
+            echo export HTTP_PROXY=$http_proxy   >> $proxyfile
+            echo export HTTPS_PROXY=$https_proxy >> $proxyfile
+            echo export NO_PROXY=$no_proxy       >> $proxyfile
 
             incus exec ${contenedor} --user ${user_id} --group ${user_id} -- \
                 mkdir -p ${user_home}/.config/shrc
