@@ -45,6 +45,7 @@ then
     if [ "$kernel_ver" != "$lkv" ]
     then
         debian/rules maintainerclean
+        debian/rules clean
     fi
 fi
 
