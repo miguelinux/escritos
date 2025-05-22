@@ -62,11 +62,16 @@ then
         kvf=$(echo $kernel_ver | tr \~  -)
         kernel_file=linux-${kvf}.tar.gz
         kernel_url=https://git.kernel.org/torvalds/t
-        mkdir -p ../orig
-        ln -s linux-${kvf} ../orig/linux-${kernel_ver}
     fi
 
     curl -L -o ../${deb_kernel_file} ${kernel_url}/${kernel_file}
+fi
+
+mkdir -p ../orig
+
+if echo $kernel_ver | grep --quiet \~
+    kvf=$(echo $kernel_ver | tr \~  -)
+    ln -s -f linux-${kvf} ../orig/linux-${kernel_ver}
 fi
 
 debian/rules orig
