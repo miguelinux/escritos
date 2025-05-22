@@ -60,7 +60,6 @@ then
     then
         # kernel version fixed
         kvf=$(echo $kernel_ver | tr \~  -)
-        echo $kvf
         kernel_file=linux-${kvf}.tar.gz
         kernel_url=https://git.kernel.org/torvalds/t
         mkdir -p ../orig
