@@ -12,13 +12,11 @@ then
     exit 1
 fi
 
-if [ "$NAME" = "Debian GNU/Linux" ]
-then
-    if [ -d /etc/apt/sources.list.d ]
-    then
+case $ID in
+    debian|ubuntu)
         apt-get -y update
         apt-get -y install git stow tmux vim rsync connect-proxy curl xmlto
         apt-get -y install build-essential fakeroot devscripts unifdef libncurses-dev
         apt-get -y build-dep linux
-    fi
-fi
+    ;;
+esac
