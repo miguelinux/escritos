@@ -17,6 +17,7 @@ case $ID in
         apt-get -y update
         apt-get -y install git stow tmux vim rsync connect-proxy curl xmlto
         apt-get -y install build-essential fakeroot devscripts unifdef libncurses-dev
+        apt-get -y install python3-dacite
         apt-get -y build-dep linux
     ;;
 esac
