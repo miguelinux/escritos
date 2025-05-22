@@ -64,7 +64,7 @@ then
         kernel_file=linux-${kvf}.tar.gz
         kernel_url=https://git.kernel.org/torvalds/t
         mkdir -p ../orig
-        ln -s ${kvf} ../orig/${kernel_ver}
+        ln -s linux-${kvf} ../orig/linux-${kernel_ver}
     fi
 
     curl -L -o ../${deb_kernel_file} ${kernel_url}/${kernel_file}
