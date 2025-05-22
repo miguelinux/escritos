@@ -70,6 +70,7 @@ fi
 mkdir -p ../orig
 
 if echo $kernel_ver | grep --quiet \~
+then
     kvf=$(echo $kernel_ver | tr \~  -)
     ln -s -f linux-${kvf} ../orig/linux-${kernel_ver}
 fi
