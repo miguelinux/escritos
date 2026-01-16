@@ -4,10 +4,23 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+my_manager=incus
+
 instance_name=$1
 device_name=$2
 path_in_instance=$3
 path_on_host=$(realpath $PWD)
+
+source /usr/lib/os-release
+
+case $ID in
+    debian)
+        my_manager=incus
+    ;;
+    ubuntu)
+        my_manager=lxc
+    ;;
+esac
 
 if [ -z "${instance_name}" ]
 then
@@ -34,7 +47,7 @@ then
 fi
 
 
-incus config device add ${instance_name} ${device_name} disk \
+$my_manager config device add ${instance_name} ${device_name} disk \
     source=${path_on_host} \
     path=${path_in_instance} \
     shift=true
