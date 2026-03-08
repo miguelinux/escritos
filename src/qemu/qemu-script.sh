@@ -1,10 +1,10 @@
 #!/bin/bash
 # -*- mode: shell-script; indent-tabs-mode: nil; sh-basic-offset: 4; -*-
-# ex: ts=8 sw=4 sts=4 et filetype=sh
+# vi: ts=8 sw=4 sts=4 et filetype=sh
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-##################  start default config  ##################
+#SDC #################  start default config  ##################
 VM_NAME=vm001
 VM_DEV_NET="virtio-net-pci"                               # VM type NIC
 VM_MONITOR="" #"/run/user/${UID}/qemu/${VM_NAME}-vm-monitor.sock" # Monitor unix socket
@@ -41,7 +41,7 @@ VM_SPICE_EXTRA=",disable-ticketing=on"                    # spice extra args
 VM_PMEM_DIR=/tmp                                          # CXL, NVMDIMM files
 VM_QEMU_BIN=""           # Path from another qemu binary
 EXTRA_QEMU_ARGS=""       # -hdd fat:/my_directory
-##################  end default config  ###################
+#EDC ##################  end default config  ###################
 
 # Where is the qemu binary
 QEMU_BIN=$(command -v qemu-system-x86_64)
@@ -278,6 +278,26 @@ parse_args ()
                         die "Config file ($1) not found"
                     fi
                 fi
+            ;;
+            --create-config)
+                cfg_file=${HOME}/.config/qemu-scripts/${0##*/}.conf
+                script_file=$(realpath $0)
+                if [ -e  ${cfg_file} ]
+                then
+                    die "${cfg_file}: Already exist"
+                fi
+                echo "# vi: ts=8 sw=4 sts=4 et filetype=sh"     > ${cfg_file}
+                sed -n '/SDC/,/EDC/ {p;/EDC/q}' ${script_file} >> ${cfg_file}
+                exit 0
+            ;;
+            --edit-config)
+                cfg_file=${HOME}/.config/qemu-scripts/${0##*/}.conf
+                if [ ! -e  ${cfg_file} ]
+                then
+                    die "${cfg_file}: Does NOT exist"
+                fi
+                vim ${cfg_file}
+                exit 0
             ;;
             *)
                 EXTRA_QEMU_ARGS="${EXTRA_QEMU_ARGS} ${1}"
