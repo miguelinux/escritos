@@ -7,6 +7,8 @@ incus config device add [<remote>:]<instance> <device> <type> [key=value...] [fl
 ```
 incus config device add apache puerto-80 proxy listen=tcp:0.0.0.0:8080 connect=tcp:127.0.0.1:80
 
+incus config device add el-contenedor nuevo-nombre proxy listen=tcp:X.Y.Z.W:8080 connect=tcp:0.0.0.0:80 nat=true
+
 incus config device add <instance> <device> \
    proxy \
    listen=tcp:127.0.0.1:8080 \
