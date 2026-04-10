@@ -15,7 +15,26 @@ incus config device add <instance> <device> \
    connect=tcp:127.0.0.1:4943
 ```
 
-Listar puertos
+## How to Fix
+
+1. Assign a Static IPv4 via LXD (Recommended) 
+This tells the internal LXD DHCP server (dnsmasq) to always reserve
+a specific IP for that instance's MAC address. 
+
+```bash
+lxc config device set <instance_name> eth0 ipv4.address <desired_ip>
+```
+o este comando
+
+```bash
+lxc config device override <instance> <device> ipv4.address=...
+
+lxc config device override laravel-dt eth0 ipv4.address=10.21.41.14
+```
+
+Note: The IP must be within the subnet of the bridge (e.g., lxdbr0) and outside the dynamic DHCP pool to avoid conflicts. 
+
+## Listar puertos
 ```
 incus config device list
 ```
