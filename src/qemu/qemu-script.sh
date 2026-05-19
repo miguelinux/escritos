@@ -282,6 +282,10 @@ parse_args ()
             --create-config)
                 cfg_file=${HOME}/.config/qemu-scripts/${0##*/}.conf
                 script_file=$(realpath $0)
+                if [ ! -d ${HOME}/.config/qemu-scripts ]
+                then
+                    mkdir -p ${HOME}/.config/qemu-scripts
+                fi
                 if [ -e  ${cfg_file} ]
                 then
                     die "${cfg_file}: Already exist"
