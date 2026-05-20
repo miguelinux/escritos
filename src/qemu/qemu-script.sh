@@ -332,6 +332,11 @@ run_swtpm ()
             --tpm2 \
             --daemon
 
+        if [ "$?" -ne "0" ]
+        then
+            die  "swtmp returns with errors"
+        fi
+
         QEMU_TPM="-chardev socket,id=chrtpm,path=/run/user/${UID}/qemu/${VM_NAME}-swtpm.sock"
         QEMU_TPM+=" -tpmdev emulator,id=tpm-tpm0,chardev=chrtpm"
         QEMU_TPM+=" -device tpm-crb,id=tpm0,tpmdev=tpm-tpm0"
