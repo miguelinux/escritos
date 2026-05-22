@@ -360,8 +360,9 @@ run_qemu ()
         -display none                                                   \
         -nographic                                                      \
         ${QEMU_TPM}                                                     \
+        -audiodev pipewire,id=snd0                                      \
         -device intel-hda                                               \
-        -device hda-duplex                                              \
+        -device hda-duplex,audiodev=snd0                                \
         ${QEMU_SEC_BOOT}                                                \
         -object iothread,id=io1                                         \
         -device virtio-blk-pci,drive=disk0,iothread=io1,bootindex=${VM_BOOT_IMG} \
