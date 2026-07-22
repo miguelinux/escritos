@@ -6,6 +6,7 @@
 
 
 my_manager=incus
+container_key_pub=${1:-incus.key.pub}
 
 setup_my_user ()
 {
@@ -19,7 +20,7 @@ setup_my_user ()
         fi
         $my_manager exec ${contenedor} --user ${user_id} --group ${user_id} -- \
             mkdir -m 700 -p ${user_home}/.ssh
-        $my_manager file push incus.key.pub \
+        $my_manager file push ${container_key_pub} \
             ${contenedor}${user_home}/.ssh/authorized_keys --uid ${user_id} --gid ${user_id}
 
         $my_manager exec ${contenedor} --user ${user_id} --group ${user_id} -- \
