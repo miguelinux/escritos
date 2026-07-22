@@ -6,7 +6,8 @@
 
 
 my_manager=incus
-container_key_pub=${1:-incus.key.pub}
+contenedor=$1
+container_key_pub=${2:-incus.key.pub}
 
 setup_my_user ()
 {
@@ -59,8 +60,6 @@ case $ID in
         my_manager=lxc
     ;;
 esac
-
-contenedor=$1
 
 if [ -z "${contenedor}" ]
 then
