@@ -67,6 +67,13 @@ then
     exit 1
 fi
 
+if [ ! -f ${container_key_pub} ]
+then
+    >&2 echo "No se encuentra el archivo: ${container_key_pub}"
+    exit 2
+fi
+
+
 if !  $my_manager ls ${contenedor} | grep --quiet RUNNING
 then
     >&2 echo "No se encontro el contenedor: ${contenedor} corriendo"
